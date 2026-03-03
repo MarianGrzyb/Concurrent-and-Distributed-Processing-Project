@@ -4,3 +4,4 @@
 4. list of external libraries/frameworks used
 5. screenshots of the game
 6. a description of the contributions of individual group members
+7. zuzia tez cos zrobi w readme
