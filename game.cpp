@@ -1,5 +1,11 @@
 #include "Definers.h"
 #include "Player.h"
+#include "Field.h"
+#include "KeyboardInputHandling.h"
+#include "MainMenu.h"
+#include "PlayerInitialization.h"
+#include "FieldsInitialization.h"
+#include "Board.h"
 
 #include <iostream>
 #include <vector>
@@ -7,194 +13,152 @@
 
 using namespace std;
 
-// function to iterate over the vector of all possible inputs 'inputCharacters' to determine whether a given character stream
-// 'characterStream' is included in this vector
-bool checkKeyboardInputCorrectness(vector<char> inputCharacters, string characterStream)
+// function to carry out a turn for a particular player
+void turn(Player currentPlayer, vector<Field*> allFields, bool* poisonPill)
 {
-	// check whether the vector of all characters is not empty and whether the size of character stream is equal 'OPTION_SIZE'
-	if (!inputCharacters.empty() && characterStream.size() == OPTION_SIZE)
+	cout << "Turn of the " << currentPlayer.getColour() << " player: <" << currentPlayer.getName() << ">" << endl;
+	cout << "Possible moves: " << endl;
+
+	vector<char> validKeyboardInputs;
+	int poisonPillCounter = 0;
+
+	// iterate through all the Fields
+	for (int i = 0; i < allFields.size(); i++)
 	{
-		// iterate over the whole vector of possible inputs 
-		for (int i = 0; i < inputCharacters.size(); i++)
+		Field field = *allFields[i];
+		int row = field.getRow();
+
+		// Check whether the highest row is empty
+		if (row == ROWS_NUMBER && !field.getOccupied())
 		{
-			// if a given character has a match in the vector of all possible inputs return 'CORRECT_INPUT'
-			if (characterStream[0] == inputCharacters[i])
+			//disable poison pill
+			poisonPillCounter += 1;
+			// display all the possible moves
+			cout << "Column: [" << field.getColumn() << "]" << endl;
+			// pass column numbers as valid keyboard inputs, but cast them to characters first
+			validKeyboardInputs.push_back(char(CASTING_TO_CHAR + field.getColumn()));
+		}
+	}
+
+	// if there are possible moves continue
+	if (poisonPillCounter > 0)
+	{
+		string validInput = HandleKeyboardInput(validKeyboardInputs);
+		int columnInput = int(validInput[0] - CASTING_TO_CHAR);
+
+		int lowestRow = ROWS_NUMBER;
+		int lowestRowIndex = 0;
+
+		// iterate through all the Fields
+		for (int i = 0; i < allFields.size(); i++)
+		{
+			Field field = *allFields[i];
+
+			// if the column matches, there is a lower row and it is unoccupied
+			if (field.getColumn() == columnInput && field.getRow() <= lowestRow && !field.getOccupied())
 			{
-				return CORRECT_INPUT;
+				// set lowest row to this row and determine its index
+				lowestRow = field.getRow();
+				lowestRowIndex = i;
 			}
 		}
-	}
 
-	// if after iteration over the whole vector no match has been found return 'INCORRECT_INPUT'
-	return INCORRECT_INPUT;
-}
+		// set the determined Field to occupied
+		allFields[lowestRowIndex]->setOccupied(true);
 
-//function to handle all the inputs from the keyboard (in any situation)
-string HandleKeyboardInput(vector<char> inputCharacters)
-{
-	bool result;
-	string characterStream;
-
-	do
-	{
-		// read character Stream from the console
-		cin >> characterStream;
-
-		// check whether the input from the console is correct
-		result = checkKeyboardInputCorrectness(inputCharacters, characterStream);
-
-		// if the input is incorrect display 'INCORRECT_INPUT_DISPLAY'
-		if (result == INCORRECT_INPUT)
+		// if BLACK player then display black pawns
+		if (currentPlayer.getColour() == BLACK_COLOUR_NAME)
 		{
-			cout << INCORRECT_INPUT_DISPLAY;
+			allFields[lowestRowIndex]->setSymbol(FIELD_OCCUPIED_SYMBOL_BLACK);
+		}
+		// otherwise display RED pawns
+		else
+		{
+			allFields[lowestRowIndex]->setSymbol(FIELD_OCCUPIED_SYMBOL_RED);
 		}
 	}
-	// repeat the process until input is correct
-	while (result != CORRECT_INPUT);
-
-	return characterStream;
-}
-
-// function to pint the Main Menu
-void printMainMenu()
-{
-	cout << MAIN_MENU_START_NEW_GAME_DISPLAY << endl;
-}
-
-// function to handle the Main Menu (all the possible options)
-string Menu()
-{
-	// print all the options from the Main Menu
-	printMainMenu();
-
-	// add all the possible valid options to 'keyboardInputs'
-	vector<char> validKeyboardInputs;
-	validKeyboardInputs.push_back(MAIN_MENU_START_NEW_GAME_KEYCAP);
-
-	// handle the input from the console
-	string validInput = HandleKeyboardInput(validKeyboardInputs);
-
-	return validInput;
-}
-
-
-// function to determine which colours have been taken already by other players
-vector<string> determineTakenColours(vector<Player*> players)
-{
-	vector<string> takenColours;
-
-	// iterate over all the players
-	for (int i = 0; i < players.size(); i++)
-	{
-		// if vector of players is not empty insert all the colours assigned to them to the vector 'takenColours'
-		if (!players.empty())
-		{
-			takenColours.push_back(players[i]->getColour());
-		}
-	}
-
-	// return the vector with all taken colours
-	return takenColours;
-}
-
-// function making it impossible to choose already taken colour
-vector<char> enableUniqueColours(vector<string> takenColours)
-{
-	vector<char> validKeyboardInputs;
-
-	// if there are no taken colours
-	if (takenColours.empty())
-	{
-		// pollute the vector with all the possible options
-		validKeyboardInputs.push_back(BLACK_COLOUR_KEYCAP);
-		validKeyboardInputs.push_back(RED_COLOUR_KEYCAP);
-
-		// display full Menu
-		cout << "BLACK[b] - STARTS THE GAME" << endl;
-		cout << "RED[r] - MOVES SECOND\n" << endl;
-	}
-	// if one of the coulrs is taken already
+	// if there are no valid moves then finish with draw
 	else
 	{
-		string takenColour = takenColours[0];
-
-		// determine which colour has been taken and display the menu accordingly
-		if (takenColour == BLACK_COLOUR_NAME)
-		{
-			validKeyboardInputs.push_back(RED_COLOUR_KEYCAP);
-
-			cout << "BLACK - STARTS THE GAME (UNAVAILABLE)" << endl;
-			cout << "RED[r] - MOVES SECOND\n" << endl;
-		}
-		else
-		{
-			validKeyboardInputs.push_back(BLACK_COLOUR_KEYCAP);
-
-			cout << "BLACK[b] - STARTS THE GAME" << endl;
-			cout << "RED - MOVES SECOND (UNAVAILABLE)\n" << endl;
-		}
+		*poisonPill = true;
+		cout << "No Moves Available!" << endl;
+		cout << DRAW_EVENT_DESCRIPTION << endl;
 	}
-
-	return validKeyboardInputs;
 }
 
-// function to initialize players and their attributes
-vector<Player*> initPlayers()
+// function to determine victory conditions, not implemented yet
+bool victory()
 {
-	vector<Player*> players;
+	return 0;
+}
 
-	// initialize just 'MAX_PLAYER_NUMBER_SINGLE_GAME' players
-	for (int i = 0; i < MAX_PLAYER_NUMBER_SINGLE_GAME; i++)
+// function to carry out the game
+void mainGameLoop(vector<Player*> players)
+{
+	// initialize all the Fields possible on the board
+	vector<Field*> allFields = initFields();
+
+	Player firstPlayer;
+	Player secondPlayer;
+	Player currentPlayer;
+
+	// if the first player chooses 'BLACK_COLOUR_NAME' then they start
+	if (players[0]->getColour() == BLACK_COLOUR_NAME)
 	{
-		cout << "\nPLAYER " << i + 1 << ": CHOOSE THE COLOUR" << endl;
+		firstPlayer = *players[0];
+		secondPlayer = *players[1];
+	}
+	// otherwise second player starts
+	else
+	{
+		firstPlayer = *players[1];
+		secondPlayer = *players[0];
+	}
 
-		// determine colours which are not available
-		vector<string> takenColours = determineTakenColours(players);
+	// count the turns
+	int turnCounter = 0;
+	bool poisonPill = false;
 
-		// determine which kind of inputs are valid
-		vector<char> validKeyboardInputs = enableUniqueColours(takenColours);
+	// start the main game loop
+	do
+	{
+		// increase the turn counter
+		turnCounter += 1;
 
-		// handle all the keyboard inputs
-		string validInput = HandleKeyboardInput(validKeyboardInputs);
-		string colour;
-
-		// assign colours accordingly
-		if (validInput[0] == BLACK_COLOUR_KEYCAP)
+		// all the even turns are of the BLACK player and odd of the RED player
+		if (turnCounter % TURN_DETERMINANT == 0)
 		{
-			colour = BLACK_COLOUR_NAME;
+			currentPlayer = secondPlayer;
 		}
 		else
 		{
-			colour = RED_COLOUR_NAME;
+			currentPlayer = firstPlayer;
 		}
 
-		// create an instance of a player
-		Player* player = new Player(i + 1, colour);
-		// insert the player to 'players' vector holding all the players
-		players.push_back(player);
+		// display the whole state of a board
+		displayBoard(allFields);
+		// allow a player to take their turn
+		turn(currentPlayer, allFields, &poisonPill);
 	}
-
-	return players;
+	// finish the game when one of the players wins
+	while (!victory() && !poisonPill);
 }
 
+// preparatory function to start the game
 void startNewGame()
 {
 	// initialize players
 	vector<Player*> players = initPlayers();
 
-	for (int i = 0; i < players.size(); i++)
-	{
-		cout << "\nID:" << players[i]->getId() << endl;
-		cout << "Name:" << players[i]->getName() << endl;
-		cout << "Colour:" << players[i]->getColour() << "\n" << endl;
-	}
+	// start the main game loop
+	mainGameLoop(players);
 }
 
+// the Main game interface
 int main()
 {
-	string option;
-	// display the Menu and choose the option
-	option = Menu();
+	// choose action in the Main Menu
+	string option = mainMenu();
 
 	// if option 'MAIN_MENU_START_NEW_GAME_KEYCAP' then start the game
 	if (option[0] == MAIN_MENU_START_NEW_GAME_KEYCAP)

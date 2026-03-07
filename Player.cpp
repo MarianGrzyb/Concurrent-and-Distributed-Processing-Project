@@ -1,5 +1,5 @@
-#include "Definers.h"
 #include "Player.h"
+#include "Definers.h"
 
 string setDefaultName(int id)
 {
