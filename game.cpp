@@ -75,85 +75,76 @@ bool victory(vector<Field*>& allFields, char symbol)
 	}
 	return false;
 }
+// Prints available columns and fills validKeyboardInputs. Returns number of available columns found.
+int keyboardInputHandling(vector<Field*> allFields, vector<char>& validKeyboardInputs)
+{
+	int availableColumns = 0;
+	validKeyboardInputs.push_back('q');
 
-// function to carry out a turn for a particular player
-void turn(Player currentPlayer, vector<Field*> allFields, bool* poisonPill, bool* quitGame)
+	for (int i = 0; i < allFields.size(); i++)
+	{
+		Field field = *allFields[i];
+
+		if (field.getRow() == ROWS_NUMBER && !field.getOccupied())
+		{
+			availableColumns++;
+			cout << "Column: [" << field.getColumn() << "]" << endl;
+			validKeyboardInputs.push_back(char(CASTING_TO_CHAR + field.getColumn()));
+		}
+	}
+	return availableColumns;
+}
+
+// Places a pawn in the lowest unoccupied row of the chosen column.
+void pawnPlacing(vector<Field*>& allFields, char symbol, int columnInput)
+{
+	int lowestRow = ROWS_NUMBER;
+	int lowestRowIndex = 0;
+
+	for (int i = 0; i < allFields.size(); i++)
+	{
+		Field field = *allFields[i];
+
+		if (field.getColumn() == columnInput && field.getRow() <= lowestRow && !field.getOccupied())
+		{
+			lowestRow = field.getRow();
+			lowestRowIndex = i;
+		}
+	}
+
+	allFields[lowestRowIndex]->setOccupied(true);
+	allFields[lowestRowIndex]->setSymbol(symbol);
+}
+
+void turn(Player currentPlayer, vector<Field*>& allFields, bool* poisonPill, bool* quitGame)
 {
 	cout << "Turn of the " << currentPlayer.getColour() << " player: <" << currentPlayer.getName() << ">" << endl;
 	cout << "Possible moves: " << endl;
 
-	int poisonPillCounter = 0;
 	vector<char> validKeyboardInputs;
+	int availableColumns = keyboardInputHandling(allFields, validKeyboardInputs);
 
-	validKeyboardInputs.push_back(char('q'));
-
-	// iterate through all the Fields
-	for (int i = 0; i < allFields.size(); i++)
-	{
-		Field field = *allFields[i];
-		int row = field.getRow();
-
-		// Check whether the highest row is empty
-		if (row == ROWS_NUMBER && !field.getOccupied())
-		{
-			//disable poison pill
-			poisonPillCounter += 1;
-			// display all the possible moves
-			cout << "Column: [" << field.getColumn() << "]" << endl;
-			// pass column numbers as valid keyboard inputs, but cast them to characters first
-			validKeyboardInputs.push_back(char(CASTING_TO_CHAR + field.getColumn()));
-		}
-	}
-
-	// if there are possible moves continue
-	if (poisonPillCounter > 0)
-	{
-		string validInput = HandleKeyboardInput(validKeyboardInputs);
-
-		// check if player wants to quit game
-		if (gameQuitting(validInput, quitGame))
-			return;
-
-		int columnInput = int(validInput[0] - CASTING_TO_CHAR);
-
-		int lowestRow = ROWS_NUMBER;
-		int lowestRowIndex = 0;
-
-		// iterate through all the Fields
-		for (int i = 0; i < allFields.size(); i++)
-		{
-			Field field = *allFields[i];
-
-			// if the column matches, there is a lower row and it is unoccupied
-			if (field.getColumn() == columnInput && field.getRow() <= lowestRow && !field.getOccupied())
-			{
-				// set lowest row to this row and determine its index
-				lowestRow = field.getRow();
-				lowestRowIndex = i;
-			}
-		}
-
-		// set the determined Field to occupied
-		allFields[lowestRowIndex]->setOccupied(true);
-
-		// if BLACK player then display black pawns
-		if (currentPlayer.getColour() == BLACK_COLOUR_NAME)
-		{
-			allFields[lowestRowIndex]->setSymbol(FIELD_OCCUPIED_SYMBOL_BLACK);
-		}
-		// otherwise display RED pawns
-		else
-		{
-			allFields[lowestRowIndex]->setSymbol(FIELD_OCCUPIED_SYMBOL_RED);
-		}
-	}
-	// if there are no valid moves then finish with draw
-	else
+	if (availableColumns == 0)
 	{
 		*poisonPill = true;
 		cout << "No Moves Available!" << endl;
 		cout << DRAW_EVENT_DESCRIPTION << endl;
+		return;
 	}
+
+	string validInput = HandleKeyboardInput(validKeyboardInputs);
+
+	if (gameQuitting(validInput, quitGame))
+		return;
+
+	int columnInput = int(validInput[0] - CASTING_TO_CHAR);
+	char symbol;
+	if (currentPlayer.getColour() == BLACK_COLOUR_NAME)
+		symbol = FIELD_OCCUPIED_SYMBOL_BLACK;
+	else
+		symbol = FIELD_OCCUPIED_SYMBOL_RED;
+
+	pawnPlacing(allFields, symbol, columnInput);
 }
 
 // function to carry out the game
@@ -192,13 +183,9 @@ void mainGameLoop(vector<Player*> players)
 
 		// all the even turns are of the BLACK player and odd of the RED player
 		if (turnCounter % TURN_DETERMINANT == 0)
-		{
 			currentPlayer = secondPlayer;
-		}
 		else
-		{
 			currentPlayer = firstPlayer;
-		}
 
 		// display the whole state of a board
 		displayBoard(allFields);
@@ -214,7 +201,7 @@ void mainGameLoop(vector<Player*> players)
 
 		if (victory(allFields,currentSymbol)) {
 			displayBoard(allFields);
-			cout << currentPlayer.getColour() << ", symbol: " << currentSymbol << " wins!" << endl;
+			cout << "Player named: " << currentPlayer.getName() << " (" << currentPlayer.getColour() <<", " << currentSymbol <<")" << " wins!" << endl;
 			quitGame = true;
 			return;
 		}

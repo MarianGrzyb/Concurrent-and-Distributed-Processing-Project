@@ -69,6 +69,23 @@ vector<char> enableUniqueColours(vector<string> takenColours)
 	return validKeyboardInputs;
 }
 
+void setNameForThePlayer (Player* player) {
+	cout << "Would you like to set own name for the player?" << endl;
+	cout << "If yes, press 'y' else press 'n'" << endl;
+
+	char tmp;
+	cin >> tmp;
+
+	if (tmp == 'y') {
+		string name = "";
+		cout << "Provide name for the player:" << endl;
+		cin >> name;
+		player->setName(name);
+	}
+	else
+		cout << "Default name was assigned: " << player->getName();
+}
+
 // function to initialize players and their attributes
 vector<Player*> initPlayers()
 {
@@ -91,16 +108,16 @@ vector<Player*> initPlayers()
 
 		// assign colours accordingly
 		if (validInput[0] == BLACK_COLOUR_KEYCAP)
-		{
 			colour = BLACK_COLOUR_NAME;
-		}
 		else
-		{
 			colour = RED_COLOUR_NAME;
-		}
 
 		// create an instance of a player
 		Player* player = new Player(i + 1, colour);
+
+		// setting name possibility for the player
+		setNameForThePlayer(player);
+
 		// add the player to 'players' vector holding all the players
 		players.push_back(player);
 	}
