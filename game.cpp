@@ -13,14 +13,79 @@
 
 using namespace std;
 
+// function to quit the game without ending to the end, by pressing 'q'
+bool gameQuitting(const string& validInput, bool* quitGame)
+{
+	if (validInput == "q")
+	{
+		cout << "End of the game" << endl;
+		*quitGame = true;
+		return true;
+	}
+	return false;
+}
+
+// help function to check if filed exists on the given position
+Field* fieldAt(const vector<Field*>& allFields, int row, int col)
+{
+	if (row < 1 || row > ROWS_NUMBER || col < 1 || col > COLUMNS_NUMBER)
+		return nullptr;
+	return allFields[(row - 1) * COLUMNS_NUMBER + (col - 1)];
+}
+
+// function to determine victory conditions
+bool victory(vector<Field*>& allFields, char symbol)
+{
+	int directions[4][2] = {
+		{0, 1},   // horizontal (on the right)
+		{1, 0},   // vertical (on the top)
+		{1, 1},   // diagonal upper right
+		{1, -1}   // diagonal upper left
+	};
+
+	for (int i = 0; i < allFields.size(); i++)
+	{
+		Field* origin = allFields[i];
+
+		if (!origin->getOccupied() || origin->getSymbol() != symbol)
+			continue;
+
+		int originRow = origin->getRow();
+		int originCol = origin->getColumn();
+
+		for (int d = 0; d < 4; d++)
+		{
+			int dRow = directions[d][0];
+			int dCol = directions[d][1];
+			int count = 1;
+
+			for (int step = 1; step < 4; step++)
+			{
+				Field* candidate = fieldAt(allFields, originRow + step * dRow, originCol + step * dCol);
+
+				if (!candidate || !candidate->getOccupied() || candidate->getSymbol() != symbol)
+					break;
+
+				count++;
+			}
+
+			if (count == 4)
+				return true;
+		}
+	}
+	return false;
+}
+
 // function to carry out a turn for a particular player
-void turn(Player currentPlayer, vector<Field*> allFields, bool* poisonPill)
+void turn(Player currentPlayer, vector<Field*> allFields, bool* poisonPill, bool* quitGame)
 {
 	cout << "Turn of the " << currentPlayer.getColour() << " player: <" << currentPlayer.getName() << ">" << endl;
 	cout << "Possible moves: " << endl;
 
-	vector<char> validKeyboardInputs;
 	int poisonPillCounter = 0;
+	vector<char> validKeyboardInputs;
+
+	validKeyboardInputs.push_back(char('q'));
 
 	// iterate through all the Fields
 	for (int i = 0; i < allFields.size(); i++)
@@ -44,6 +109,11 @@ void turn(Player currentPlayer, vector<Field*> allFields, bool* poisonPill)
 	if (poisonPillCounter > 0)
 	{
 		string validInput = HandleKeyboardInput(validKeyboardInputs);
+
+		// check if player wants to quit game
+		if (gameQuitting(validInput, quitGame))
+			return;
+
 		int columnInput = int(validInput[0] - CASTING_TO_CHAR);
 
 		int lowestRow = ROWS_NUMBER;
@@ -86,12 +156,6 @@ void turn(Player currentPlayer, vector<Field*> allFields, bool* poisonPill)
 	}
 }
 
-// function to determine victory conditions, not implemented yet
-bool victory()
-{
-	return 0;
-}
-
 // function to carry out the game
 void mainGameLoop(vector<Player*> players)
 {
@@ -118,6 +182,7 @@ void mainGameLoop(vector<Player*> players)
 	// count the turns
 	int turnCounter = 0;
 	bool poisonPill = false;
+	bool quitGame = false;
 
 	// start the main game loop
 	do
@@ -138,10 +203,24 @@ void mainGameLoop(vector<Player*> players)
 		// display the whole state of a board
 		displayBoard(allFields);
 		// allow a player to take their turn
-		turn(currentPlayer, allFields, &poisonPill);
+		turn(currentPlayer, allFields, &poisonPill, &quitGame);
+
+		char currentSymbol;
+
+		if (currentPlayer.getColour() == BLACK_COLOUR_NAME)
+			currentSymbol = FIELD_OCCUPIED_SYMBOL_BLACK;
+		else
+			currentSymbol = FIELD_OCCUPIED_SYMBOL_RED;
+
+		if (victory(allFields,currentSymbol)) {
+			displayBoard(allFields);
+			cout << currentPlayer.getColour() << ", symbol: " << currentSymbol << " wins!" << endl;
+			quitGame = true;
+			return;
+		}
 	}
 	// finish the game when one of the players wins
-	while (!victory() && !poisonPill);
+	while (!poisonPill && !quitGame);
 }
 
 // preparatory function to start the game
