@@ -14,14 +14,15 @@
 using namespace std;
 
 // function to quit the game without ending to the end, by pressing 'q'
-bool gameQuitting(const string& validInput, bool* quitGame)
+bool gameQuitting(const string& validInput, bool* quitGame, Player currentPlayer)
 {
-	if (validInput == "q")
+	if (validInput[0] == QUIT_THE_GAME_KEYCAP)
 	{
-		cout << "End of the game" << endl;
+		cout << "\nPLAYER <" <<currentPlayer.getName() << "> QUIT THE GAME\n" << endl;
 		*quitGame = true;
 		return true;
 	}
+
 	return false;
 }
 
@@ -76,10 +77,10 @@ bool victory(vector<Field*>& allFields, char symbol)
 	return false;
 }
 // Prints available columns and fills validKeyboardInputs. Returns number of available columns found.
-int keyboardInputHandling(vector<Field*> allFields, vector<char>& validKeyboardInputs)
+int determinePossibleMoves(vector<Field*> allFields, vector<char>& validKeyboardInputs)
 {
 	int availableColumns = 0;
-	validKeyboardInputs.push_back('q');
+	validKeyboardInputs.push_back(QUIT_THE_GAME_KEYCAP);
 
 	for (int i = 0; i < allFields.size(); i++)
 	{
@@ -88,10 +89,13 @@ int keyboardInputHandling(vector<Field*> allFields, vector<char>& validKeyboardI
 		if (field.getRow() == ROWS_NUMBER && !field.getOccupied())
 		{
 			availableColumns++;
-			cout << "Column: [" << field.getColumn() << "]" << endl;
+			cout << "COLUMN [" << field.getColumn() << "]" << endl;
 			validKeyboardInputs.push_back(char(CASTING_TO_CHAR + field.getColumn()));
 		}
 	}
+
+	cout << "QUIT [" << QUIT_THE_GAME_KEYCAP << "]\n" << endl;
+
 	return availableColumns;
 }
 
@@ -118,27 +122,28 @@ void pawnPlacing(vector<Field*>& allFields, char symbol, int columnInput)
 
 void turn(Player currentPlayer, vector<Field*>& allFields, bool* poisonPill, bool* quitGame)
 {
-	cout << "Turn of the " << currentPlayer.getColour() << " player: <" << currentPlayer.getName() << ">" << endl;
-	cout << "Possible moves: " << endl;
+	cout << "TURN OF THE (" << currentPlayer.getColour() << ") PLAYER <" << currentPlayer.getName() << ">" << endl;
+	cout << "POSSIBLE MOVES: " << endl;
 
 	vector<char> validKeyboardInputs;
-	int availableColumns = keyboardInputHandling(allFields, validKeyboardInputs);
+	int availableColumns = determinePossibleMoves(allFields, validKeyboardInputs);
 
 	if (availableColumns == 0)
 	{
 		*poisonPill = true;
-		cout << "No Moves Available!" << endl;
+		cout << "NO MOVES AVAILABLE!\n" << endl;
 		cout << DRAW_EVENT_DESCRIPTION << endl;
 		return;
 	}
 
 	string validInput = HandleKeyboardInput(validKeyboardInputs);
 
-	if (gameQuitting(validInput, quitGame))
+	if (gameQuitting(validInput, quitGame, currentPlayer))
 		return;
 
 	int columnInput = int(validInput[0] - CASTING_TO_CHAR);
 	char symbol;
+
 	if (currentPlayer.getColour() == BLACK_COLOUR_NAME)
 		symbol = FIELD_OCCUPIED_SYMBOL_BLACK;
 	else
@@ -199,9 +204,10 @@ void mainGameLoop(vector<Player*> players)
 		else
 			currentSymbol = FIELD_OCCUPIED_SYMBOL_RED;
 
-		if (victory(allFields,currentSymbol)) {
+		if (victory(allFields, currentSymbol))
+		{
 			displayBoard(allFields);
-			cout << "Player named: " << currentPlayer.getName() << " (" << currentPlayer.getColour() <<", " << currentSymbol <<")" << " wins!" << endl;
+			cout << "PLAYER <" << currentPlayer.getName() << "> WHO PLAYED (" << currentPlayer.getColour() <<")" << " WINS!\n" << endl;
 			quitGame = true;
 			return;
 		}
@@ -223,12 +229,22 @@ void startNewGame()
 // the Main game interface
 int main()
 {
-	// choose action in the Main Menu
-	string option = mainMenu();
-
-	// if option 'MAIN_MENU_START_NEW_GAME_KEYCAP' then start the game
-	if (option[0] == MAIN_MENU_START_NEW_GAME_KEYCAP)
+	string option;
+	do
 	{
-		startNewGame();
+		// choose action in the Main Menu
+		string option = mainMenu();
+
+		// if option 'MAIN_MENU_START_NEW_GAME_KEYCAP' then start the game
+		if (option[0] == MAIN_MENU_START_NEW_GAME_KEYCAP)
+		{
+			startNewGame();
+		}
+		else if (option[0] == QUIT_THE_GAME_KEYCAP)
+		{
+			break;
+		}
 	}
+	while (true);
+
 }

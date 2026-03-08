@@ -4,8 +4,10 @@
 #define OPTION_SIZE 1
 #define MAIN_MENU_START_NEW_GAME_DISPLAY "PRESS [1] TO START NEW GAME\n"
 #define MAIN_MENU_START_NEW_GAME_KEYCAP '1'
+#define MAIN_MENU_QUIT_DISPLAY "PRESS [q] TO QUIT\n\n"
+#define QUIT_THE_GAME_KEYCAP 'q'
 
-#define DRAW_EVENT_DESCRIPTION "\nDRAW! NOBODY WINS THIS TIME :(\n"
+#define DRAW_EVENT_DESCRIPTION "DRAW! NOBODY WINS THIS TIME :(\n"
 
 // Checking input correctness
 #define CORRECT_INPUT true
@@ -21,6 +23,11 @@
 #define DEFAULT_NAME_PLAYER_1 "Player 1"
 #define DEFAULT_NAME_PLAYER_2 "Player 2"
 #define TURN_DETERMINANT 2
+
+// Changing the name of the player
+#define PLAYER_CHANGE_THE_NAME_KEYCAP 'y'
+#define PLAYER_DO_NOT_CHANGE_THE_NAME_KEYCAP 'n'
+#define PLAYER_NAME_MAX_LENGTH 20
 
 // Colours
 #define BLACK_COLOUR_KEYCAP 'b'

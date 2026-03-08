@@ -69,21 +69,47 @@ vector<char> enableUniqueColours(vector<string> takenColours)
 	return validKeyboardInputs;
 }
 
-void setNameForThePlayer (Player* player) {
-	cout << "Would you like to set own name for the player?" << endl;
-	cout << "If yes, press 'y' else press 'n'" << endl;
+// function to set the name of the player from the console
+void setNameForThePlayer (Player* player)
+{
+	cout << "\nSET THE PLAYER NAME [y]" << endl;
+	cout << "USE DEFAULT PLAYER NAME [n]\n" << endl;
 
-	char tmp;
-	cin >> tmp;
+	// make it impossible for the player to provide invalid input
+	vector<char> validKeyboardInputs;
 
-	if (tmp == 'y') {
-		string name = "";
-		cout << "Provide name for the player:" << endl;
-		cin >> name;
+	validKeyboardInputs.push_back(PLAYER_CHANGE_THE_NAME_KEYCAP);
+	validKeyboardInputs.push_back(PLAYER_DO_NOT_CHANGE_THE_NAME_KEYCAP);
+
+	string validInput = HandleKeyboardInput(validKeyboardInputs);
+
+	// if player wants to change the name
+	if (validInput[0] == PLAYER_CHANGE_THE_NAME_KEYCAP)
+	{
+		string name;
+
+		// repeat until the name is not too long
+		do {
+			cout << "\nSET THE PLAYER NAME [MAXIMUM LENGTH OF THE PLAYER NAME IS " << PLAYER_NAME_MAX_LENGTH << " CHARACTERS]\n" << endl;
+			cin >> name;
+
+			// if the name is too long display the reminder
+			if (name.size() > PLAYER_NAME_MAX_LENGTH)
+			{
+				cout << "\nMAXIMUM LENGTH OF THE PLAYER NAME IS " << PLAYER_NAME_MAX_LENGTH << " CHARACTERS!" << endl;
+			}
+		}
+		while (name.size() > PLAYER_NAME_MAX_LENGTH);
+
+		// otherwise set the name and display it
 		player->setName(name);
+		cout << "\nTHE NEW PLAYER NAME WAS ASSIGNED <" << player->getName() << ">\n";
 	}
+	// if the player doesn't want to change the name and use default one instead
 	else
-		cout << "Default name was assigned: " << player->getName();
+	{
+		cout << "\nDEFAULT PLAYER NAME WAS ASSIGNED <" << player->getName() << ">\n";
+	}
 }
 
 // function to initialize players and their attributes
