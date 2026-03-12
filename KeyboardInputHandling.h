@@ -1,7 +1,6 @@
 #pragma once
-#include <string>
 #include <vector>
 
 using namespace std;
 
-string HandleKeyboardInput(vector<char> inputCharacters);
+char handleKeyboardInput(vector<char> inputCharacters);

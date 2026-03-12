@@ -30,7 +30,7 @@ bool checkKeyboardInputCorrectness(vector<char> inputCharacters, string characte
 }
 
 //function to handle all the inputs from the keyboard (in any situation)
-string HandleKeyboardInput(vector<char> inputCharacters)
+char handleKeyboardInput(vector<char> inputCharacters)
 {
 	bool result;
 	string characterStream;
@@ -52,5 +52,5 @@ string HandleKeyboardInput(vector<char> inputCharacters)
 	// repeat the process until the input is correct
 	while (result != CORRECT_INPUT);
 
-	return characterStream;
+	return characterStream[0];
 }

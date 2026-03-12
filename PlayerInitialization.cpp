@@ -81,10 +81,10 @@ void setNameForThePlayer (Player* player)
 	validKeyboardInputs.push_back(PLAYER_CHANGE_THE_NAME_KEYCAP);
 	validKeyboardInputs.push_back(PLAYER_DO_NOT_CHANGE_THE_NAME_KEYCAP);
 
-	string validInput = HandleKeyboardInput(validKeyboardInputs);
+	char validInput = handleKeyboardInput(validKeyboardInputs);
 
 	// if player wants to change the name
-	if (validInput[0] == PLAYER_CHANGE_THE_NAME_KEYCAP)
+	if (validInput == PLAYER_CHANGE_THE_NAME_KEYCAP)
 	{
 		string name;
 
@@ -129,14 +129,18 @@ vector<Player*> initPlayers()
 		vector<char> validKeyboardInputs = enableUniqueColours(takenColours);
 
 		// handle all the keyboard inputs
-		string validInput = HandleKeyboardInput(validKeyboardInputs);
+		char validInput = handleKeyboardInput(validKeyboardInputs);
 		string colour;
 
 		// assign colours accordingly
-		if (validInput[0] == BLACK_COLOUR_KEYCAP)
+		if (validInput == BLACK_COLOUR_KEYCAP)
+		{
 			colour = BLACK_COLOUR_NAME;
+		}
 		else
+		{
 			colour = RED_COLOUR_NAME;
+		}
 
 		// create an instance of a player
 		Player* player = new Player(i + 1, colour);

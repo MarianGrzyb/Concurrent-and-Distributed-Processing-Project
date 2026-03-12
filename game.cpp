@@ -14,9 +14,9 @@
 using namespace std;
 
 // function to quit the game without ending to the end, by pressing 'q'
-bool gameQuitting(const string& validInput, bool* quitGame, Player currentPlayer)
+bool gameQuitting(char validInput, bool* quitGame, Player currentPlayer)
 {
-	if (validInput[0] == QUIT_THE_GAME_KEYCAP)
+	if (validInput == QUIT_THE_GAME_KEYCAP)
 	{
 		cout << "\nPLAYER <" <<currentPlayer.getName() << "> QUIT THE GAME\n" << endl;
 		*quitGame = true;
@@ -136,12 +136,12 @@ void turn(Player currentPlayer, vector<Field*>& allFields, bool* poisonPill, boo
 		return;
 	}
 
-	string validInput = HandleKeyboardInput(validKeyboardInputs);
+	char validInput = handleKeyboardInput(validKeyboardInputs);
 
 	if (gameQuitting(validInput, quitGame, currentPlayer))
 		return;
 
-	int columnInput = int(validInput[0] - CASTING_TO_CHAR);
+	int columnInput = int(validInput - CASTING_TO_CHAR);
 	char symbol;
 
 	if (currentPlayer.getColour() == BLACK_COLOUR_NAME)
@@ -229,22 +229,21 @@ void startNewGame()
 // the Main game interface
 int main()
 {
-	string option;
 	do
 	{
-		// choose action in the Main Menu
-		string option = mainMenu();
+		// choose current option in the Main Menu
+		char currentOption = mainMenu();
 
 		// if option 'MAIN_MENU_START_NEW_GAME_KEYCAP' then start the game
-		if (option[0] == MAIN_MENU_START_NEW_GAME_KEYCAP)
+		if (currentOption == MAIN_MENU_START_NEW_GAME_KEYCAP)
 		{
 			startNewGame();
 		}
-		else if (option[0] == QUIT_THE_GAME_KEYCAP)
+		// if option 'QUIT_THE_GAME_KEYCAP' then quit the game
+		else if (currentOption == QUIT_THE_GAME_KEYCAP)
 		{
 			break;
 		}
 	}
 	while (true);
-
 }

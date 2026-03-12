@@ -1,15 +1,20 @@
 #pragma once
 
 // Main Menu options
-#define OPTION_SIZE 1
-#define MAIN_MENU_START_NEW_GAME_DISPLAY "PRESS [1] TO START NEW GAME\n"
-#define MAIN_MENU_START_NEW_GAME_KEYCAP '1'
-#define MAIN_MENU_QUIT_DISPLAY "PRESS [q] TO QUIT\n\n"
-#define QUIT_THE_GAME_KEYCAP 'q'
+#define MAIN_MENU_PRESS_DISPLAY "PRESS ["
+#define MAIN_MENU_FOOTER_DISPLAY "\n"
 
-#define DRAW_EVENT_DESCRIPTION "DRAW! NOBODY WINS THIS TIME :(\n"
+// -> start new game
+#define MAIN_MENU_START_NEW_GAME_DISPLAY "] TO START NEW GAME\n"
+#define MAIN_MENU_START_NEW_GAME_KEYCAP '1'
+
+// -> quit the game
+#define MAIN_MENU_QUIT_DISPLAY "] TO QUIT\n"
+#define MAIN_MENU_QUIT_THE_GAME_KEYCAP 'q'
+
 
 // Checking input correctness
+#define OPTION_SIZE 1
 #define CORRECT_INPUT true
 #define INCORRECT_INPUT false
 #define INCORRECT_INPUT_DISPLAY "\nINVALID INPUT! PLEASE INPUT ONLY OPTIONS IN [...]\n\n"
@@ -64,6 +69,11 @@
 
 #define BOARD_HEADER "\nTHE BOARD\n\n"
 #define BOARD_FOOTER "\n"
+
+//game events
+#define QUIT_THE_GAME_KEYCAP 'q'
+
+#define DRAW_EVENT_DESCRIPTION "DRAW! NOBODY WINS THIS TIME :(\n"
 
 
 // Field properties
