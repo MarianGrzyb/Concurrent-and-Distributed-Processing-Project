@@ -9,27 +9,28 @@
 
 using namespace std;
 
-// function to determine which colours have been taken already by other players
+// function to determine which colours have been already taken by other players
 vector<string> determineTakenColours(vector<Player*> players)
 {
 	vector<string> takenColours;
 
-	// iterate over all the players
-	for (int i = 0; i < players.size(); i++)
+	// if vector of players is not empty
+	if (!players.empty())
 	{
-		// if vector of players is not empty insert all the colours assigned to them to the vector 'takenColours'
-		if (!players.empty())
+		// iterate over all the players
+		for (int playerIndex = 0; playerIndex < players.size(); playerIndex++)
 		{
-			takenColours.push_back(players[i]->getColour());
+			// insert all the colours already assigned
+			takenColours.push_back(players[playerIndex]->getColour());			
 		}
 	}
 
-	// return the vector with all taken colours
+	// return the vector with all the taken colours
 	return takenColours;
 }
 
 // function making it impossible to choose already taken colour
-vector<char> enableUniqueColours(vector<string> takenColours)
+vector<char> determineAvailableColours(vector<string> takenColours)
 {
 	vector<char> validKeyboardInputs;
 
@@ -37,32 +38,41 @@ vector<char> enableUniqueColours(vector<string> takenColours)
 	if (takenColours.empty())
 	{
 		// pollute the vector with all the possible options
-		validKeyboardInputs.push_back(BLACK_COLOUR_KEYCAP);
-		validKeyboardInputs.push_back(RED_COLOUR_KEYCAP);
+		validKeyboardInputs.push_back(COLOUR_BLACK_KEYCAP);
+		validKeyboardInputs.push_back(COLOUR_RED_KEYCAP);
 
-		// display full Menu
-		cout << "BLACK[b] - STARTS THE GAME" << endl;
-		cout << "RED[r] - MOVES SECOND\n" << endl;
+		// display full Menu for choosing the colour
+		cout << PLAYER_CHOOSE_COLOUR_BLACK_AVAILABLE_DISPLAY;
+		cout << PLAYER_CHOOSE_COLOUR_RED_AVAILABLE_DISPLAY;
+		// display end of menu for choosing the colour
+		cout << PLAYER_CHOOSE_COLOUR_FOOTER_DISPLAY;
 	}
 	// if one of the colours is taken already
 	else
 	{
-		string takenColour = takenColours[0];
+		// there is maximum one colour taken
+		string takenColour = takenColours[PLAYER_CHOOSE_COLOUR_TAKEN_COLOUR_INDEX];
 
 		// determine which colour has been taken and display the menu accordingly
-		if (takenColour == BLACK_COLOUR_NAME)
+		if (takenColour == COLOUR_BLACK_NAME)
 		{
-			validKeyboardInputs.push_back(RED_COLOUR_KEYCAP);
+			validKeyboardInputs.push_back(COLOUR_RED_KEYCAP);
 
-			cout << "BLACK - STARTS THE GAME (UNAVAILABLE)" << endl;
-			cout << "RED[r] - MOVES SECOND\n" << endl;
+			// display the Menu for choosing the colour with BLACK unavailable
+			cout << PLAYER_CHOOSE_COLOUR_BLACK_UNAVAILABLE_DISPLAY;
+			cout << PLAYER_CHOOSE_COLOUR_RED_AVAILABLE_DISPLAY;
+			// display end of menu for choosing the colour
+			cout << PLAYER_CHOOSE_COLOUR_FOOTER_DISPLAY;
 		}
 		else
 		{
-			validKeyboardInputs.push_back(BLACK_COLOUR_KEYCAP);
+			validKeyboardInputs.push_back(COLOUR_BLACK_KEYCAP);
 
-			cout << "BLACK[b] - STARTS THE GAME" << endl;
-			cout << "RED - MOVES SECOND (UNAVAILABLE)\n" << endl;
+			// display the Menu for choosing the colour with RED unavailable
+			cout << PLAYER_CHOOSE_COLOUR_BLACK_AVAILABLE_DISPLAY;
+			cout << PLAYER_CHOOSE_COLOUR_RED_UNAVAILABLE_DISPLAY;
+			// display end of menu for choosing the colour
+			cout << PLAYER_CHOOSE_COLOUR_FOOTER_DISPLAY;
 		}
 	}
 
@@ -72,43 +82,46 @@ vector<char> enableUniqueColours(vector<string> takenColours)
 // function to set the name of the player from the console
 void setNameForThePlayer (Player* player)
 {
-	cout << "\nSET THE PLAYER NAME [y]" << endl;
-	cout << "USE DEFAULT PLAYER NAME [n]\n" << endl;
+	// display Menu for changing the name
+	cout << PLAYER_NAME_CHANGE_CHANGE_THE_NAME_DISPLAY;
+	cout << PLAYER_NAME_CHANGE_DO_NOT_CHANGE_THE_NAME_DISPLAY;
+	// display end of menu for choosing whether to change the name or not
+	cout << PLAYER_NAME_CHANGE_FOOTER;
 
 	// make it impossible for the player to provide invalid input
 	vector<char> validKeyboardInputs;
 
-	validKeyboardInputs.push_back(PLAYER_CHANGE_THE_NAME_KEYCAP);
-	validKeyboardInputs.push_back(PLAYER_DO_NOT_CHANGE_THE_NAME_KEYCAP);
+	validKeyboardInputs.push_back(PLAYER_NAME_CHANGE_CHANGE_THE_NAME_KEYCAP);
+	validKeyboardInputs.push_back(PLAYER_NAME_CHANGE_DO_NOT_CHANGE_THE_NAME_KEYCAP);
 
 	char validInput = handleKeyboardInput(validKeyboardInputs);
 
 	// if player wants to change the name
-	if (validInput == PLAYER_CHANGE_THE_NAME_KEYCAP)
+	if (validInput == PLAYER_NAME_CHANGE_CHANGE_THE_NAME_KEYCAP)
 	{
 		string name;
 
-		// repeat until the name is not too long
+		// repeat until the name is of correct length
 		do {
-			cout << "\nSET THE PLAYER NAME [MAXIMUM LENGTH OF THE PLAYER NAME IS " << PLAYER_NAME_MAX_LENGTH << " CHARACTERS]\n" << endl;
+			cout << PLAYER_NAME_CHANGE_SET_NAME_DISPLAY;
 			cin >> name;
 
 			// if the name is too long display the reminder
-			if (name.size() > PLAYER_NAME_MAX_LENGTH)
+			if (name.size() > PLAYER_NAME_CHANGE_NAME_MAX_LENGTH)
 			{
-				cout << "\nMAXIMUM LENGTH OF THE PLAYER NAME IS " << PLAYER_NAME_MAX_LENGTH << " CHARACTERS!" << endl;
+				cout << PLAYER_NAME_CHANGE_INVALID_NAME_LENGTH_DISPLAY;
 			}
 		}
-		while (name.size() > PLAYER_NAME_MAX_LENGTH);
+		while (name.size() > PLAYER_NAME_CHANGE_NAME_MAX_LENGTH);
 
 		// otherwise set the name and display it
 		player->setName(name);
-		cout << "\nTHE NEW PLAYER NAME WAS ASSIGNED <" << player->getName() << ">\n";
+		cout << PLAYER_NAME_CHANGE_NEW_NAME_DISPLAY << player->getName() << PLAYER_NAME_CHANGE_SET_NAME_FOOTER;
 	}
 	// if the player doesn't want to change the name and use default one instead
 	else
 	{
-		cout << "\nDEFAULT PLAYER NAME WAS ASSIGNED <" << player->getName() << ">\n";
+		cout << PLAYER_NAME_CHANGE_DEFAULT_NAME_DISPLAY << player->getName() << PLAYER_NAME_CHANGE_SET_NAME_FOOTER;
 	}
 }
 
@@ -117,33 +130,33 @@ vector<Player*> initPlayers()
 {
 	vector<Player*> players;
 
-	// initialize just 'MAX_PLAYER_NUMBER_SINGLE_GAME' players
-	for (int i = 0; i < MAX_PLAYER_NUMBER_SINGLE_GAME; i++)
+	// initialize 'PLAYER_MAX_NUMBER_PER_GAME' players for a single game
+	for (int playerIndex = 0; playerIndex < PLAYER_MAX_NUMBER_PER_GAME; playerIndex++)
 	{
-		cout << "\nPLAYER " << i + 1 << ": CHOOSE THE COLOUR" << endl;
+		cout << PLAYER_CHOOSE_COLOUR_PLAYER_DISPLAY << playerIndex + PLAYER_ID_INCREMENT << PLAYER_CHOOSE_COLOUR_DISPLAY;
 
 		// determine colours which are not available
 		vector<string> takenColours = determineTakenColours(players);
 
-		// determine which kind of inputs are valid
-		vector<char> validKeyboardInputs = enableUniqueColours(takenColours);
+		// determine which kind of inputs are valid (only available colours)
+		vector<char> validKeyboardInputs = determineAvailableColours(takenColours);
 
 		// handle all the keyboard inputs
 		char validInput = handleKeyboardInput(validKeyboardInputs);
 		string colour;
 
 		// assign colours accordingly
-		if (validInput == BLACK_COLOUR_KEYCAP)
+		if (validInput == COLOUR_BLACK_KEYCAP)
 		{
-			colour = BLACK_COLOUR_NAME;
+			colour = COLOUR_BLACK_NAME;
 		}
 		else
 		{
-			colour = RED_COLOUR_NAME;
+			colour = COLOUR_RED_NAME;
 		}
 
-		// create an instance of a player
-		Player* player = new Player(i + 1, colour);
+		// create an instance of a player, the 'id' has to be incremented to represent a real value
+		Player* player = new Player(playerIndex + PLAYER_ID_INCREMENT, colour);
 
 		// setting name possibility for the player
 		setNameForThePlayer(player);

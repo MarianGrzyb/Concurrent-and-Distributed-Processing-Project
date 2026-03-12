@@ -11,8 +11,8 @@ using namespace std;
 void displayMainMenu()
 {
 	// display all the possible options separately
-	cout << MAIN_MENU_PRESS_DISPLAY << MAIN_MENU_START_NEW_GAME_KEYCAP << MAIN_MENU_START_NEW_GAME_DISPLAY;
-	cout << MAIN_MENU_PRESS_DISPLAY << MAIN_MENU_QUIT_THE_GAME_KEYCAP << MAIN_MENU_QUIT_DISPLAY;
+	cout << MAIN_MENU_START_NEW_GAME_DISPLAY;
+	cout << MAIN_MENU_QUIT_DISPLAY;
 	// display end of the Main Menu
 	cout << MAIN_MENU_FOOTER_DISPLAY;
 }

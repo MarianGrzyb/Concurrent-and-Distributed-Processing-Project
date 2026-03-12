@@ -17,7 +17,6 @@ public:
 
     int getId();
     void setId(int id);
-
     string getName();
     void setName(string name);
     string getColour();

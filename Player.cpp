@@ -1,15 +1,16 @@
 #include "Player.h"
 #include "Definers.h"
 
+//function to set default name based on the order (id) of players
 string setDefaultName(int id)
 {
-    if (id == DEFAULT_ID_PLAYER_1)
+    if (id == PLAYER_DEFAULT_ID_1)
     {
-        return DEFAULT_NAME_PLAYER_1;
+        return PLAYER_DEFAULT_NAME_1;
     }
     else
     {
-        return DEFAULT_NAME_PLAYER_2;
+        return PLAYER_DEFAULT_NAME_2;
     }
 }
 

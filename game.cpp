@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <vector>
-#include <string>
 
 using namespace std;
 
@@ -144,7 +143,7 @@ void turn(Player currentPlayer, vector<Field*>& allFields, bool* poisonPill, boo
 	int columnInput = int(validInput - CASTING_TO_CHAR);
 	char symbol;
 
-	if (currentPlayer.getColour() == BLACK_COLOUR_NAME)
+	if (currentPlayer.getColour() == COLOUR_BLACK_NAME)
 		symbol = FIELD_OCCUPIED_SYMBOL_BLACK;
 	else
 		symbol = FIELD_OCCUPIED_SYMBOL_RED;
@@ -163,7 +162,7 @@ void mainGameLoop(vector<Player*> players)
 	Player currentPlayer;
 
 	// if the first player chooses 'BLACK_COLOUR_NAME' then they start
-	if (players[0]->getColour() == BLACK_COLOUR_NAME)
+	if (players[0]->getColour() == COLOUR_BLACK_NAME)
 	{
 		firstPlayer = *players[0];
 		secondPlayer = *players[1];
@@ -199,7 +198,7 @@ void mainGameLoop(vector<Player*> players)
 
 		char currentSymbol;
 
-		if (currentPlayer.getColour() == BLACK_COLOUR_NAME)
+		if (currentPlayer.getColour() == COLOUR_BLACK_NAME)
 			currentSymbol = FIELD_OCCUPIED_SYMBOL_BLACK;
 		else
 			currentSymbol = FIELD_OCCUPIED_SYMBOL_RED;
@@ -222,7 +221,7 @@ void startNewGame()
 	// initialize players
 	vector<Player*> players = initPlayers();
 
-	// start the main game loop
+	// start the main game loop for specific players
 	mainGameLoop(players);
 }
 
@@ -240,7 +239,7 @@ int main()
 			startNewGame();
 		}
 		// if option 'QUIT_THE_GAME_KEYCAP' then quit the game
-		else if (currentOption == QUIT_THE_GAME_KEYCAP)
+		else if (currentOption == MAIN_MENU_QUIT_THE_GAME_KEYCAP)
 		{
 			break;
 		}
