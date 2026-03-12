@@ -12,24 +12,24 @@ using namespace std;
 bool checkKeyboardInputCorrectness(vector<char> inputCharacters, string characterStream)
 {
 	// check whether the vector of all characters is not empty and whether the size of character stream is equal 'OPTION_SIZE'
-	if (!inputCharacters.empty() && characterStream.size() == OPTION_SIZE)
+	if (!inputCharacters.empty() && characterStream.size() == CHECKING_INPUT_CORRECTNESS_OPTION_SIZE)
 	{
 		// iterate over the whole vector of possible inputs 
-		for (int i = 0; i < inputCharacters.size(); i++)
+		for (int character_index = 0; character_index < inputCharacters.size(); character_index++)
 		{
-			// if a given character has a match in the vector of all possible inputs return 'CORRECT_INPUT'
-			if (characterStream[0] == inputCharacters[i])
+			// if a given character has a match in the vector of all possible inputs return 'CHECKING_INPUT_CORRECTNESS_CORRECT_INPUT'
+			if (characterStream[CHECKING_INPUT_CORRECTNESS_OPTION_INDEX] == inputCharacters[character_index])
 			{
-				return CORRECT_INPUT;
+				return CHECKING_INPUT_CORRECTNESS_CORRECT_INPUT;
 			}
 		}
 	}
 
-	// if after iteration over the whole vector no match has been found return 'INCORRECT_INPUT'
-	return INCORRECT_INPUT;
+	// if after iterating over the whole vector no match has been found return 'CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT'
+	return CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT;
 }
 
-//function to handle all the inputs from the keyboard (in any situation)
+//function to handle all the inputs from the keyboard (when there are options - single characters to choose)
 char handleKeyboardInput(vector<char> inputCharacters)
 {
 	bool result;
@@ -37,20 +37,21 @@ char handleKeyboardInput(vector<char> inputCharacters)
 
 	do
 	{
-		// read character Stream from the console
+		// read character stream from the console (input from the keyboard)
 		cin >> characterStream;
 
-		// check whether the input from the console is correct
+		// check whether the input from the console matches that in the vector of possible inputs 'inputCharacters'
 		result = checkKeyboardInputCorrectness(inputCharacters, characterStream);
 
-		// if the input is incorrect display 'INCORRECT_INPUT_DISPLAY'
-		if (result == INCORRECT_INPUT)
+		// if the input is incorrect display an appropriate message
+		if (result == CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT)
 		{
-			cout << INCORRECT_INPUT_DISPLAY;
+			cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
 		}
 	}
-	// repeat the process until the input is correct
-	while (result != CORRECT_INPUT);
+	// repeat the process until the input matches that in the vector of possible inputs 'inputCharacters'
+	while (result != CHECKING_INPUT_CORRECTNESS_CORRECT_INPUT);
 
-	return characterStream[0];
+	// return the valid option from the character stream (a single character)
+	return characterStream[CHECKING_INPUT_CORRECTNESS_OPTION_INDEX];
 }

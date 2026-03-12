@@ -1,5 +1,13 @@
 #pragma once
 
+// Checking input correctness
+#define CHECKING_INPUT_CORRECTNESS_OPTION_SIZE 1
+#define CHECKING_INPUT_CORRECTNESS_OPTION_INDEX 0
+#define CHECKING_INPUT_CORRECTNESS_CORRECT_INPUT true
+#define CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT false
+#define CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY "\nINVALID INPUT! PLEASE INPUT ONLY OPTIONS IN [...]\n\n"
+
+
 // Main Menu options
 #define MAIN_MENU_PRESS_DISPLAY "PRESS ["
 #define MAIN_MENU_FOOTER_DISPLAY "\n"
@@ -11,14 +19,6 @@
 // -> quit the game
 #define MAIN_MENU_QUIT_DISPLAY "] TO QUIT\n"
 #define MAIN_MENU_QUIT_THE_GAME_KEYCAP 'q'
-
-
-// Checking input correctness
-#define OPTION_SIZE 1
-#define CORRECT_INPUT true
-#define INCORRECT_INPUT false
-#define INCORRECT_INPUT_DISPLAY "\nINVALID INPUT! PLEASE INPUT ONLY OPTIONS IN [...]\n\n"
-#define CASTING_TO_CHAR '0'
 
 
 // Players
@@ -72,6 +72,8 @@
 
 //game events
 #define QUIT_THE_GAME_KEYCAP 'q'
+
+#define CASTING_TO_CHAR '0'
 
 #define DRAW_EVENT_DESCRIPTION "DRAW! NOBODY WINS THIS TIME :(\n"
 
