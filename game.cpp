@@ -12,24 +12,132 @@
 
 using namespace std;
 
-// function to quit the game without ending to the end, by pressing 'q'
+// function to determine who moves first and who second
+void determinePlayerOrder(vector<Player*> players, Player* firstPlayer, Player* secondPlayer)
+{
+	// if the first player chooses 'BLACK_COLOUR_NAME' then they start
+	if (players[0]->getColour() == COLOUR_BLACK_NAME)
+	{
+		*firstPlayer = *players[0];
+		*secondPlayer = *players[1];
+	}
+	// otherwise second player starts
+	else
+	{
+		*firstPlayer = *players[1];
+		*secondPlayer = *players[0];
+	}
+}
+
+// Prints available columns and fills validKeyboardInputs. Returns number of available columns found.
+int determinePossibleMoves(vector<Field*> allFields, vector<char>& validKeyboardInputs)
+{
+	int availableColumns = 0;
+	validKeyboardInputs.push_back(TURN_QUIT_TO_MAIN_MENU_KEYCAP);
+
+	// iterate through all the Fields
+	for (int fieldIndex = 0; fieldIndex < allFields.size(); fieldIndex++)
+	{
+		Field field = *allFields[fieldIndex];
+
+		// if the highest row is unoccupied
+		if (field.getRow() == ROWS_NUMBER && !field.getOccupied())
+		{
+			availableColumns++;
+			cout << TURN_AVAILABLE_COLUMN_DISPLAY << field.getColumn() << TURN_AVAILABLE_COLUMN_FOOTER_DISPLAY;
+			validKeyboardInputs.push_back(char(CASTING_TO_CHAR + field.getColumn()));
+		}
+	}
+
+	// if there is at least one possible move
+	if (availableColumns != 0)
+	{
+		cout << TURN_QUIT_TO_MAIN_MENU_DISPLAY;
+	}
+
+	return availableColumns;
+}
+
+// function to quit to Main Menu
 bool gameQuitting(char validInput, bool* quitGame, Player currentPlayer)
 {
-	if (validInput == QUIT_THE_GAME_KEYCAP)
+	// if the option to exit to Main Menu is chosen
+	if (validInput == TURN_QUIT_TO_MAIN_MENU_KEYCAP)
 	{
-		cout << "\nPLAYER <" <<currentPlayer.getName() << "> QUIT THE GAME\n" << endl;
+		// end the game and quit to Main Menu
 		*quitGame = true;
+		cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY << currentPlayer.getName() << TURN_QUIT_TO_MAIN_MENU_DESCRIPTION_DISPLAY;
 		return true;
 	}
 
 	return false;
 }
 
-// help function to check if filed exists on the given position
+// Places a pawn in the lowest unoccupied row of the chosen column
+void pawnPlacing(vector<Field*>& allFields, char symbol, int columnInput)
+{
+	int lowestRow = ROWS_NUMBER;
+	int lowestRowIndex = 0;
+
+	// iterate through all the Fields
+	for (int fieldIndex = 0; fieldIndex < allFields.size(); fieldIndex++)
+	{
+		Field field = *allFields[fieldIndex];
+
+		// if the column matches the input and the row is the lowest unoccupied
+		if (field.getColumn() == columnInput && field.getRow() <= lowestRow && !field.getOccupied())
+		{
+			lowestRow = field.getRow();
+			lowestRowIndex = fieldIndex;
+		}
+	}
+
+	// place the pawn in the correct Field
+	allFields[lowestRowIndex]->setOccupied(true);
+	allFields[lowestRowIndex]->setSymbol(symbol);
+}
+
+// function to handle the course of a turn
+void turn(Player currentPlayer, vector<Field*>& allFields, bool* quitGame)
+{
+	// display all the information about the turn
+	cout << TURN_COLOUR_DISPLAY << currentPlayer.getColour() << TURN_PLAYER_DISPLAY << currentPlayer.getName() << TURN_FOOTER_DISPLAY;
+	cout << TURN_POSSIBLE_MOVES_DISPLAY;
+
+	vector<char> validKeyboardInputs;
+	int availableColumns = determinePossibleMoves(allFields, validKeyboardInputs);
+
+	// if there are no more columns available
+	if (availableColumns == 0)
+	{
+		// finish the game with a draw
+		*quitGame = true;
+		cout << DRAW_EVENT_DESCRIPTION_DISPLAY;
+		return;
+	}
+
+	char validInput = handleKeyboardInput(validKeyboardInputs);
+
+	// check whether the player decided to exit to Main Menu
+	if (gameQuitting(validInput, quitGame, currentPlayer))
+	{
+		return;
+	}
+
+	int columnInput = int(validInput - CASTING_TO_CHAR);
+
+	// place the pawns accordingly
+	pawnPlacing(allFields, currentPlayer.getFieldSymbol(), columnInput);
+}
+
+// help function to check if Field exists on the given position
 Field* fieldAt(const vector<Field*>& allFields, int row, int col)
 {
 	if (row < 1 || row > ROWS_NUMBER || col < 1 || col > COLUMNS_NUMBER)
+	{
 		return nullptr;
+	}
+
 	return allFields[(row - 1) * COLUMNS_NUMBER + (col - 1)];
 }
 
@@ -48,7 +156,9 @@ bool victory(vector<Field*>& allFields, char symbol)
 		Field* origin = allFields[i];
 
 		if (!origin->getOccupied() || origin->getSymbol() != symbol)
+		{
 			continue;
+		}
 
 		int originRow = origin->getRow();
 		int originCol = origin->getColumn();
@@ -70,85 +180,13 @@ bool victory(vector<Field*>& allFields, char symbol)
 			}
 
 			if (count == 4)
+			{
 				return true;
+			}
 		}
 	}
+
 	return false;
-}
-// Prints available columns and fills validKeyboardInputs. Returns number of available columns found.
-int determinePossibleMoves(vector<Field*> allFields, vector<char>& validKeyboardInputs)
-{
-	int availableColumns = 0;
-	validKeyboardInputs.push_back(QUIT_THE_GAME_KEYCAP);
-
-	for (int i = 0; i < allFields.size(); i++)
-	{
-		Field field = *allFields[i];
-
-		if (field.getRow() == ROWS_NUMBER && !field.getOccupied())
-		{
-			availableColumns++;
-			cout << "COLUMN [" << field.getColumn() << "]" << endl;
-			validKeyboardInputs.push_back(char(CASTING_TO_CHAR + field.getColumn()));
-		}
-	}
-
-	cout << "QUIT [" << QUIT_THE_GAME_KEYCAP << "]\n" << endl;
-
-	return availableColumns;
-}
-
-// Places a pawn in the lowest unoccupied row of the chosen column.
-void pawnPlacing(vector<Field*>& allFields, char symbol, int columnInput)
-{
-	int lowestRow = ROWS_NUMBER;
-	int lowestRowIndex = 0;
-
-	for (int i = 0; i < allFields.size(); i++)
-	{
-		Field field = *allFields[i];
-
-		if (field.getColumn() == columnInput && field.getRow() <= lowestRow && !field.getOccupied())
-		{
-			lowestRow = field.getRow();
-			lowestRowIndex = i;
-		}
-	}
-
-	allFields[lowestRowIndex]->setOccupied(true);
-	allFields[lowestRowIndex]->setSymbol(symbol);
-}
-
-void turn(Player currentPlayer, vector<Field*>& allFields, bool* poisonPill, bool* quitGame)
-{
-	cout << "TURN OF THE (" << currentPlayer.getColour() << ") PLAYER <" << currentPlayer.getName() << ">" << endl;
-	cout << "POSSIBLE MOVES: " << endl;
-
-	vector<char> validKeyboardInputs;
-	int availableColumns = determinePossibleMoves(allFields, validKeyboardInputs);
-
-	if (availableColumns == 0)
-	{
-		*poisonPill = true;
-		cout << "NO MOVES AVAILABLE!\n" << endl;
-		cout << DRAW_EVENT_DESCRIPTION << endl;
-		return;
-	}
-
-	char validInput = handleKeyboardInput(validKeyboardInputs);
-
-	if (gameQuitting(validInput, quitGame, currentPlayer))
-		return;
-
-	int columnInput = int(validInput - CASTING_TO_CHAR);
-	char symbol;
-
-	if (currentPlayer.getColour() == COLOUR_BLACK_NAME)
-		symbol = FIELD_OCCUPIED_SYMBOL_BLACK;
-	else
-		symbol = FIELD_OCCUPIED_SYMBOL_RED;
-
-	pawnPlacing(allFields, symbol, columnInput);
 }
 
 // function to carry out the game
@@ -161,22 +199,11 @@ void mainGameLoop(vector<Player*> players)
 	Player secondPlayer;
 	Player currentPlayer;
 
-	// if the first player chooses 'BLACK_COLOUR_NAME' then they start
-	if (players[0]->getColour() == COLOUR_BLACK_NAME)
-	{
-		firstPlayer = *players[0];
-		secondPlayer = *players[1];
-	}
-	// otherwise second player starts
-	else
-	{
-		firstPlayer = *players[1];
-		secondPlayer = *players[0];
-	}
+	// determine which player starts
+	determinePlayerOrder(players, &firstPlayer, &secondPlayer);
 
 	// count the turns
 	int turnCounter = 0;
-	bool poisonPill = false;
 	bool quitGame = false;
 
 	// start the main game loop
@@ -187,32 +214,29 @@ void mainGameLoop(vector<Player*> players)
 
 		// all the even turns are of the BLACK player and odd of the RED player
 		if (turnCounter % TURN_DETERMINANT == 0)
+		{
 			currentPlayer = secondPlayer;
+		}
 		else
+		{
 			currentPlayer = firstPlayer;
+		}
 
 		// display the whole state of a board
 		displayBoard(allFields);
 		// allow a player to take their turn
-		turn(currentPlayer, allFields, &poisonPill, &quitGame);
+		turn(currentPlayer, allFields, &quitGame);
 
-		char currentSymbol;
-
-		if (currentPlayer.getColour() == COLOUR_BLACK_NAME)
-			currentSymbol = FIELD_OCCUPIED_SYMBOL_BLACK;
-		else
-			currentSymbol = FIELD_OCCUPIED_SYMBOL_RED;
-
-		if (victory(allFields, currentSymbol))
+		if (victory(allFields, currentPlayer.getFieldSymbol()))
 		{
 			displayBoard(allFields);
-			cout << "PLAYER <" << currentPlayer.getName() << "> WHO PLAYED (" << currentPlayer.getColour() <<")" << " WINS!\n" << endl;
+			cout << WIN_EVENT_PLAYER_DISPLAY << currentPlayer.getName() << WIN_EVENT_COLOUR_DISPLAY << currentPlayer.getColour() << WIN_EVENT_FOOTER_DISPLAY;
 			quitGame = true;
 			return;
 		}
 	}
-	// finish the game when one of the players wins
-	while (!poisonPill && !quitGame);
+	// finish the game when one of the players wins or there is a draw (no more possible moves)
+	while (!quitGame);
 }
 
 // preparatory function to start the game

@@ -10,6 +10,7 @@ private:
     int id;
     string name;
     string colour;
+    char fieldSymbol;
 
 public:
     Player();
@@ -21,4 +22,6 @@ public:
     void setName(string name);
     string getColour();
     void setColour(string colour);
+    char getFieldSymbol();
+    void setFieldSymbol(char fieldSymbol);
 };

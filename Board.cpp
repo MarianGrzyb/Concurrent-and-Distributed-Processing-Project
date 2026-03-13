@@ -130,7 +130,7 @@ void displayOutline(vector<Field*> allFields)
 			}
 		}
 
-		cout << endl;
+		cout << BOARD_ROW_SEPARATOR;
 	}
 }
 

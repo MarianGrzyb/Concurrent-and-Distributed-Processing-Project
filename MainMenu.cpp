@@ -26,7 +26,7 @@ char mainMenu()
 	// add all the possible valid options to 'validKeyboardInputs'
 	vector<char> validKeyboardInputs;
 	validKeyboardInputs.push_back(MAIN_MENU_START_NEW_GAME_KEYCAP);
-	validKeyboardInputs.push_back(QUIT_THE_GAME_KEYCAP);
+	validKeyboardInputs.push_back(MAIN_MENU_QUIT_THE_GAME_KEYCAP);
 
 	// handle the input from the console (check whether the input is valid comparing it to all the possible options in 'validKeyboardInputs')
 	// and return the valid option

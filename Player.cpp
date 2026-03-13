@@ -14,6 +14,23 @@ string setDefaultName(int id)
     }
 }
 
+// function to set the initial Field symbol based on colour
+char setInitialFieldSymbol(string colour)
+{
+    char currentSymbol;
+
+    if (colour == COLOUR_BLACK_NAME)
+    {
+        currentSymbol = FIELD_OCCUPIED_SYMBOL_BLACK;
+    }
+    else
+    {
+        currentSymbol = FIELD_OCCUPIED_SYMBOL_RED;
+    }
+
+    return currentSymbol;
+}
+
 Player::Player() {}
 
 Player::Player(int id, string colour)
@@ -21,6 +38,7 @@ Player::Player(int id, string colour)
     this->id = id;
     this->name = setDefaultName(id);
     this->colour = colour;
+    this->fieldSymbol = setInitialFieldSymbol(colour);
 }
 
 int Player::getId()
@@ -51,4 +69,14 @@ string Player::getColour()
 void Player::setColour(string colour)
 {
     this->colour = colour;
+}
+
+char Player::getFieldSymbol()
+{
+    return this->fieldSymbol;
+}
+
+void Player::setFieldSymbol(char fieldSymbol)
+{
+    this->fieldSymbol = fieldSymbol;
 }

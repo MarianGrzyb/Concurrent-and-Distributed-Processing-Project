@@ -86,7 +86,7 @@ void setNameForThePlayer (Player* player)
 	cout << PLAYER_NAME_CHANGE_CHANGE_THE_NAME_DISPLAY;
 	cout << PLAYER_NAME_CHANGE_DO_NOT_CHANGE_THE_NAME_DISPLAY;
 	// display end of menu for choosing whether to change the name or not
-	cout << PLAYER_NAME_CHANGE_FOOTER;
+	cout << PLAYER_NAME_CHANGE_FOOTER_DISPLAY;
 
 	// make it impossible for the player to provide invalid input
 	vector<char> validKeyboardInputs;
@@ -116,12 +116,12 @@ void setNameForThePlayer (Player* player)
 
 		// otherwise set the name and display it
 		player->setName(name);
-		cout << PLAYER_NAME_CHANGE_NEW_NAME_DISPLAY << player->getName() << PLAYER_NAME_CHANGE_SET_NAME_FOOTER;
+		cout << PLAYER_NAME_CHANGE_NEW_NAME_DISPLAY << player->getName() << PLAYER_NAME_CHANGE_SET_NAME_FOOTER_DISPLAY;
 	}
 	// if the player doesn't want to change the name and use default one instead
 	else
 	{
-		cout << PLAYER_NAME_CHANGE_DEFAULT_NAME_DISPLAY << player->getName() << PLAYER_NAME_CHANGE_SET_NAME_FOOTER;
+		cout << PLAYER_NAME_CHANGE_DEFAULT_NAME_DISPLAY << player->getName() << PLAYER_NAME_CHANGE_SET_NAME_FOOTER_DISPLAY;
 	}
 }
 

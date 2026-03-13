@@ -15,10 +15,10 @@ bool checkKeyboardInputCorrectness(vector<char> inputCharacters, string characte
 	if (!inputCharacters.empty() && characterStream.size() == CHECKING_INPUT_CORRECTNESS_OPTION_SIZE)
 	{
 		// iterate over the whole vector of possible inputs 
-		for (int character_index = 0; character_index < inputCharacters.size(); character_index++)
+		for (int characterIndex = 0; characterIndex < inputCharacters.size(); characterIndex++)
 		{
 			// if a given character has a match in the vector of all possible inputs return 'CHECKING_INPUT_CORRECTNESS_CORRECT_INPUT'
-			if (characterStream[CHECKING_INPUT_CORRECTNESS_OPTION_INDEX] == inputCharacters[character_index])
+			if (characterStream[CHECKING_INPUT_CORRECTNESS_OPTION_INDEX] == inputCharacters[characterIndex])
 			{
 				return CHECKING_INPUT_CORRECTNESS_CORRECT_INPUT;
 			}
