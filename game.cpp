@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <vector>
+#include <windows.h>
 
 using namespace std;
 
@@ -190,7 +191,7 @@ bool victory(vector<Field*>& allFields, char symbol)
 }
 
 // function to carry out the game
-void mainGameLoop(vector<Player*> players)
+void mainGameLoop(vector<Player*> players, HANDLE consoleColour)
 {
 	// initialize all the Fields possible on the board
 	vector<Field*> allFields = initFields();
@@ -230,7 +231,12 @@ void mainGameLoop(vector<Player*> players)
 		if (victory(allFields, currentPlayer.getFieldSymbol()))
 		{
 			displayBoard(allFields);
+
+			//display the text in colour
+			SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_GREEN);
 			cout << WIN_EVENT_PLAYER_DISPLAY << currentPlayer.getName() << WIN_EVENT_COLOUR_DISPLAY << currentPlayer.getColour() << WIN_EVENT_FOOTER_DISPLAY;
+			SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_DEFAULT);
+
 			quitGame = true;
 			return;
 		}
@@ -240,18 +246,21 @@ void mainGameLoop(vector<Player*> players)
 }
 
 // preparatory function to start the game
-void startNewGame()
+void startNewGame(HANDLE consoleColour)
 {
 	// initialize players
 	vector<Player*> players = initPlayers();
 
 	// start the main game loop for specific players
-	mainGameLoop(players);
+	mainGameLoop(players, consoleColour);
 }
 
 // the Main game interface
 int main()
 {
+	//display the text in colour
+	HANDLE consoleColour = GetStdHandle(STD_OUTPUT_HANDLE);
+
 	do
 	{
 		// choose current option in the Main Menu
@@ -260,7 +269,7 @@ int main()
 		// if option 'MAIN_MENU_START_NEW_GAME_KEYCAP' then start the game
 		if (currentOption == MAIN_MENU_START_NEW_GAME_KEYCAP)
 		{
-			startNewGame();
+			startNewGame(consoleColour);
 		}
 		// if option 'QUIT_THE_GAME_KEYCAP' then quit the game
 		else if (currentOption == MAIN_MENU_QUIT_THE_GAME_KEYCAP)
