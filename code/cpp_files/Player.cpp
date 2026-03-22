@@ -1,5 +1,5 @@
-#include "Player.h"
-#include "Definers.h"
+#include "../h_files/Player.h"
+#include "../h_files/Definers.h"
 
 //function to set default name based on the order (id) of players
 string setDefaultName(int id)

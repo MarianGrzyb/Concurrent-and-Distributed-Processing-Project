@@ -1,5 +1,5 @@
-#include "Board.h"
-#include "Definers.h"
+#include "../h_files/Board.h"
+#include "../h_files/Definers.h"
 
 #include <iostream>
 #include <vector>
