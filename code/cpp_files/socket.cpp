@@ -53,6 +53,24 @@ int connectToServer() {
         std::cout << "Client can start sending and receiving data" << std::endl;
     }
 
+    char buffer[200];
+    std::cout<< "Enter the message to be sent: ";
+    std::cin.getline(buffer,200);
+
+    int byteCount = send(clientSocket, buffer, strlen(buffer), 0);
+
+    if (byteCount >= 0)
+        std::cout << "Message sent: " << buffer << std::endl;
+    else
+        WSACleanup();
+
+    int byteReceived = recv(clientSocket, buffer, 200, 0);
+
+    if (byteReceived >= 0)
+        std::cout << "Message received from the server: " << buffer << std::endl;
+    else
+        WSACleanup();
+
     // --- STEP 5: Cleanup ---
     closesocket(clientSocket);
     system("pause");

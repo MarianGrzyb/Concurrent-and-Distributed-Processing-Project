@@ -1,6 +1,6 @@
 #include "../h_files/server.h"
 
 int main() {
-    main2();
+    serverInitiation();
     return 0;
 }

@@ -1,3 +1,3 @@
 #pragma once
 
-int main2();
+int serverInitiation();

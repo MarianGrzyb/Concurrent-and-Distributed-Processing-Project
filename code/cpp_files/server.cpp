@@ -3,7 +3,7 @@
 #include <iostream>
 #include "../h_files/server.h"
 
-int main2() {
+int serverInitiation() {
     SOCKET serverSocket, acceptSocket;
     int port = 55555;
     WSADATA wsaData;
@@ -68,6 +68,23 @@ int main2() {
         return -1;
     }
     std::cout << "accept() is OK - client connected!" << std::endl;
+
+    char buffer[200];
+
+    int byteRead = recv(acceptSocket, buffer, 200, 0);
+
+    if (byteRead >= 0)
+        std::cout << "Message received from the client: " << buffer << std::endl;
+    else
+        WSACleanup();
+
+    char serverAnswer[200] = "Message from you was succesfully recieved!";
+    int byteCount = send(acceptSocket, serverAnswer, 200, 0);
+
+    if (byteCount >= 0)
+        std::cout << "Answer to the client was sent" << std::endl;
+    else
+        WSACleanup();
 
     // --- STEP 6: Cleanup ---
     // Close both sockets and shut down WinSock
