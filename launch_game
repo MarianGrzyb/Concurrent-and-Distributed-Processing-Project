@@ -1,4 +1,4 @@
-Add launch_game (or call it in any other way) into cmake-build-debug
+Add launch_game.bat (or call it in any other way) into cmake-build-debug
 
 @echo off
 cd /d "%~dp0"
