@@ -7,6 +7,10 @@
 #include <winsock2.h>
 #include <vector>
 #include <string>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
 #include "Field.h"
 #include "Player.h"
 #include "GameLogic.h"

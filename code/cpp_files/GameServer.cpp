@@ -3,6 +3,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include "../h_files/GameServer.h"
 #include "../h_files/NetworkMessage.h"
@@ -17,6 +20,7 @@ using namespace std;
 
 // ============================================================
 //  acceptClients
+//  Sequential — order matters (slot 0 = first connector).
 // ============================================================
 bool acceptClients(SOCKET listenSock, SOCKET clientSockets[2])
 {
@@ -36,50 +40,18 @@ bool acceptClients(SOCKET listenSock, SOCKET clientSockets[2])
 }
 
 // ============================================================
-//  negotiateColourForClient
-// ============================================================
-static string negotiateColourForClient(SOCKET sock, const vector<string>& takenColours)
-{
-    bool blackAvailable = true;
-    bool redAvailable   = true;
-    for (const string& c : takenColours)
-    {
-        if (c == COLOUR_BLACK_NAME) blackAvailable = false;
-        if (c == COLOUR_RED_NAME)   redAvailable   = false;
-    }
-
-    while (true)
-    {
-        if (!sendMessage(sock, buildChooseColour(blackAvailable, redAvailable)))
-            return "";
-
-        RawMessage resp;
-        if (!recvMessage(sock, resp) || resp.type != MSG_COLOUR_CHOICE)
-            return "";
-
-        char keycap = parseColourChoice(resp);
-
-        if (keycap == COLOUR_BLACK_KEYCAP && blackAvailable) return COLOUR_BLACK_NAME;
-        if (keycap == COLOUR_RED_KEYCAP   && redAvailable)   return COLOUR_RED_NAME;
-
-        if (!sendMessage(sock, buildColourTaken()))
-            return "";
-    }
-}
-
-// ============================================================
-//  negotiateNameForClient
+//  negotiateNameForClient  (unchanged — per-client, no shared state)
 // ============================================================
 static string negotiateNameForClient(SOCKET sock, const string& defaultName)
 {
     while (true)
     {
         if (!sendMessage(sock, buildAskName()))
-            return "";
+            return defaultName;
 
         RawMessage resp;
         if (!recvMessage(sock, resp))
-            return "";
+            return defaultName;
 
         if (resp.type == MSG_NAME_CHOICE)
         {
@@ -88,8 +60,7 @@ static string negotiateNameForClient(SOCKET sock, const string& defaultName)
                 return defaultName;
             if ((int)name.size() > PLAYER_NAME_CHANGE_NAME_MAX_LENGTH)
             {
-                if (!sendMessage(sock, buildNameInvalid()))
-                    return "";
+                sendMessage(sock, buildNameInvalid());
                 continue;
             }
             return name;
@@ -99,57 +70,179 @@ static string negotiateNameForClient(SOCKET sock, const string& defaultName)
 }
 
 // ============================================================
+//  SetupContext
+//  Shared state that both setup threads read/write.
+//  Protected by mutex + condition_variable so client 2
+//  cannot pick a colour until client 1 has committed theirs.
+// ============================================================
+struct SetupContext
+{
+    // --- shared colour registry ---
+    mutex              colourMutex;
+    condition_variable colourCV;
+    vector<string>     takenColours;     // grows as clients commit
+    int                coloursCommitted = 0; // how many slots filled so far
+
+    // --- results written by each thread, read by main after join ---
+    Player* players[2] = { nullptr, nullptr };
+    bool    success[2] = { false,   false   };
+};
+
+// ============================================================
+//  setupThreadFunc
+//  Runs in a dedicated thread for each client.
+//  Negotiates colour (with mutex), then name, then sends SETUP_DONE.
+// ============================================================
+static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
+{
+    int    slot        = idx + 1;
+    string defaultName = (slot == PLAYER_DEFAULT_ID_1)
+                         ? PLAYER_DEFAULT_NAME_1
+                         : PLAYER_DEFAULT_NAME_2;
+
+    // ----------------------------------------------------------
+    // COLOUR PHASE
+    // ----------------------------------------------------------
+    // Client 1 (idx=0): picks freely, commits immediately.
+    // Client 2 (idx=1): waits until client 1 has committed (coloursCommitted >= 1), then sees which colour is taken.
+    // This is the critical section that justifies the mutex.
+    // ----------------------------------------------------------
+
+    string chosenColour;
+
+    while (true)
+    {
+        // Determine availability under the lock
+        bool blackAvailable, redAvailable;
+        {
+            unique_lock<mutex> lock(ctx.colourMutex);
+
+            // Client 2 must wait until client 1 has committed a colour
+            ctx.colourCV.wait(lock, [&]{ return ctx.coloursCommitted >= idx; });
+
+            blackAvailable = true;
+            redAvailable   = true;
+            for (const string& c : ctx.takenColours)
+            {
+                if (c == COLOUR_BLACK_NAME) blackAvailable = false;
+                if (c == COLOUR_RED_NAME)   redAvailable   = false;
+            }
+        }
+
+        // Send availability to client (outside lock — no shared data touched)
+        if (!sendMessage(sock, buildChooseColour(blackAvailable, redAvailable)))
+        {
+            ctx.success[idx] = false;
+            return;
+        }
+
+        RawMessage resp;
+        if (!recvMessage(sock, resp) || resp.type != MSG_COLOUR_CHOICE)
+        {
+            ctx.success[idx] = false;
+            return;
+        }
+
+        char keycap = parseColourChoice(resp);
+
+        // Validate and commit under the lock
+        {
+            lock_guard<mutex> lock(ctx.colourMutex);
+
+            bool valid = (keycap == COLOUR_BLACK_KEYCAP && blackAvailable)
+                      || (keycap == COLOUR_RED_KEYCAP   && redAvailable);
+
+            if (!valid)
+            {
+                sendMessage(sock, buildColourTaken());
+                continue;
+            }
+
+            chosenColour = (keycap == COLOUR_BLACK_KEYCAP) ? COLOUR_BLACK_NAME : COLOUR_RED_NAME;
+
+            ctx.takenColours.push_back(chosenColour);
+            ctx.coloursCommitted++;
+        }
+
+        // Wake client 2 if it was waiting on client 1
+        ctx.colourCV.notify_all();
+        break;
+    }
+
+    // ----------------------------------------------------------
+    // NAME PHASE  (fully independent — no shared state)
+    // ----------------------------------------------------------
+    string chosenName = negotiateNameForClient(sock, defaultName);
+    if (chosenName.empty()) chosenName = defaultName;
+
+    // ----------------------------------------------------------
+    // CREATE PLAYER + SEND SETUP_DONE
+    // ----------------------------------------------------------
+    Player* p = new Player(slot, chosenColour);
+    p->setName(chosenName);
+
+    if (!sendMessage(sock, buildSetupDone(slot, chosenColour, chosenName)))
+    {
+        delete p;
+        ctx.success[idx] = false;
+        return;
+    }
+
+    cout << "[SERVER] Player " << slot
+         << ", colour: " << chosenColour
+         << ", name: "   << chosenName << endl;
+
+    ctx.players[idx] = p;
+    ctx.success[idx] = true;
+}
+
+// ============================================================
 //  negotiatePlayers
+//  Spawns one thread per client so both negotiate simultaneously.
+//  A mutex + condition_variable ensures colour uniqueness.
 // ============================================================
 bool negotiatePlayers(SOCKET clientSockets[2], vector<Player*>& players)
 {
-    vector<string> takenColours;
+    SetupContext ctx;
 
-    for (int i = 0; i < PROTOCOL_MAX_CLIENTS; ++i)
+    // Launch one setup thread per client
+    thread t0(setupThreadFunc, ref(ctx), 0, clientSockets[0]);
+    thread t1(setupThreadFunc, ref(ctx), 1, clientSockets[1]);
+
+    // Wait for both to finish
+    t0.join();
+    t1.join();
+
+    if (!ctx.success[0] || !ctx.success[1])
     {
-        int slot = i + 1;
-
-        string colour = negotiateColourForClient(clientSockets[i], takenColours);
-        if (colour.empty())
-        {
-            cerr << "[SERVER] Colour negotiation failed for client " << slot << endl;
-            return false;
-        }
-        takenColours.push_back(colour);
-
-        string defaultName = (slot == PLAYER_DEFAULT_ID_1)
-                             ? PLAYER_DEFAULT_NAME_1
-                             : PLAYER_DEFAULT_NAME_2;
-        string name = negotiateNameForClient(clientSockets[i], defaultName);
-        if (name.empty()) name = defaultName;
-
-        Player* p = new Player(slot, colour);
-        p->setName(name);
-        players.push_back(p);
-
-        if (!sendMessage(clientSockets[i], buildSetupDone(slot, colour, name)))
-            return false;
-
-        cout << "[SERVER] Player " << slot
-             << ", colour: " << colour
-             << ", name: "   << name << endl;
+        cerr << "[SERVER] Setup failed for one or more clients." << endl;
+        delete ctx.players[0];
+        delete ctx.players[1];
+        return false;
     }
+
+    // Preserve slot order in the players vector
+    players.push_back(ctx.players[0]);
+    players.push_back(ctx.players[1]);
     return true;
 }
 
 // ============================================================
 //  broadcastBoardState
+//  Uses two threads to send to both clients simultaneously.
 // ============================================================
 void broadcastBoardState(SOCKET clientSockets[2],
                          const vector<Field*>& allFields,
                          int activeSlot)
 {
     RawMessage msg = buildBoardState(allFields, activeSlot);
-    for (int i = 0; i < PROTOCOL_MAX_CLIENTS; ++i)
-    {
-        if (!sendMessage(clientSockets[i], msg))
-            cerr << "[SERVER] broadcastBoardState: send to client " << (i+1) << " failed." << endl;
-    }
+
+    // Each lambda captures msg by value — no shared mutable state, no mutex needed
+    thread t0([msg, &clientSockets]() { sendMessage(clientSockets[0], msg); });
+    thread t1([msg, &clientSockets]() { sendMessage(clientSockets[1], msg); });
+
+    t0.join();
+    t1.join();
 }
 
 // ============================================================
@@ -196,25 +289,22 @@ int getValidatedMove(SOCKET clientSocket,
 void broadcastGameOver(SOCKET clientSockets[2], char resultCode)
 {
     RawMessage msg = buildGameOver(resultCode);
-    for (int i = 0; i < PROTOCOL_MAX_CLIENTS; ++i)
-        sendMessage(clientSockets[i], msg);
+    thread t0([msg, &clientSockets]() { sendMessage(clientSockets[0], msg); });
+    thread t1([msg, &clientSockets]() { sendMessage(clientSockets[1], msg); });
+    t0.join();
+    t1.join();
 }
 
 // ============================================================
 //  playOneGame
-//  Mirrors mainGameLoop() + startNewGame() from game.cpp.
-//  Returns true if both clients want to play again, false otherwise.
 // ============================================================
 static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
 {
-    // --- initFields() mirrors startNewGame() calling initFields() ---
     vector<Field*> allFields = initFields();
 
-    // --- determinePlayerOrder(): BLACK always goes first ---
     int firstIdx  = (players[0]->getColour() == COLOUR_BLACK_NAME) ? 0 : 1;
     int secondIdx = 1 - firstIdx;
 
-    // --- mainGameLoop() turn counter ---
     int  turnCounter = 0;
     bool gameRunning = true;
 
@@ -222,7 +312,6 @@ static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
 
     while (gameRunning)
     {
-        // Mirror mainGameLoop:  turnCounter += 1; even -> second, odd -> first
         turnCounter++;
         int activeIdx = (turnCounter % TURN_DETERMINANT == 0) ? secondIdx : firstIdx;
 
@@ -230,15 +319,12 @@ static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
         SOCKET activeSock = clientSockets[activeIdx];
         SOCKET otherSock  = clientSockets[1 - activeIdx];
 
-        // displayBoard equivalent: broadcast state to both clients
         broadcastBoardState(clientSockets, allFields, activeSlot);
 
-        // turn() equivalent: get a validated move from the active client
         int column = getValidatedMove(activeSock, otherSock, allFields);
 
         if (column == -1)
         {
-            // Player quit mid-game — opponent wins
             char resultCode = (players[1 - activeIdx]->getId() == 1)
                               ? RESULT_WIN_PLAYER1
                               : RESULT_WIN_PLAYER2;
@@ -247,13 +333,10 @@ static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
             break;
         }
 
-        // pawnPlacing()
         pawnPlacing(allFields, players[activeIdx]->getFieldSymbol(), column);
 
-        // victory() check — mirrors the if(victory(...)) block in mainGameLoop
         if (victory(allFields, players[activeIdx]->getFieldSymbol()))
         {
-            // Send final board before game-over (mirrors displayBoard before win msg)
             broadcastBoardState(clientSockets, allFields, activeSlot);
 
             char resultCode = (players[activeIdx]->getId() == 1)
@@ -267,7 +350,6 @@ static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
             break;
         }
 
-        // draw check
         if (getAvailableColumns(allFields).empty())
         {
             broadcastBoardState(clientSockets, allFields, activeSlot);
@@ -280,11 +362,13 @@ static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
 
     for (auto f : allFields) delete f;
 
-    // --- Ask both clients if they want to play again (mirrors main() do-while loop) ---
-    cout << "[SERVER] Asking clients to play again..." << endl;
+    // Ask both clients simultaneously whether they want to play again
+    thread t0([&clientSockets]() { sendMessage(clientSockets[0], buildPlayAgainPrompt()); });
+    thread t1([&clientSockets]() { sendMessage(clientSockets[1], buildPlayAgainPrompt()); });
+    t0.join();
+    t1.join();
 
-    for (int i = 0; i < PROTOCOL_MAX_CLIENTS; ++i)
-        sendMessage(clientSockets[i], buildPlayAgainPrompt());
+    cout << "[SERVER] Asking clients to play again..." << endl;
 
     int yesVotes = 0;
     for (int i = 0; i < PROTOCOL_MAX_CLIENTS; ++i)
@@ -292,12 +376,10 @@ static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
         RawMessage resp;
         if (!recvMessage(clientSockets[i], resp))
             return false;
-
         if (resp.type == MSG_PLAY_AGAIN_YES)
             yesVotes++;
     }
 
-    // Both must agree to play again
     if (yesVotes == PROTOCOL_MAX_CLIENTS)
     {
         cout << "[SERVER] Both players want to play again!" << endl;
@@ -310,7 +392,6 @@ static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
 
 // ============================================================
 //  runGameServer
-//  Outer loop mirrors game.cpp main() do-while with mainMenu().
 // ============================================================
 int runGameServer()
 {
@@ -360,11 +441,9 @@ int runGameServer()
         return 1;
     }
 
-    // --- Outer loop: mirrors game.cpp main() do { mainMenu -> startNewGame } while(true) ---
     bool keepPlaying = true;
     while (keepPlaying)
     {
-        // Fresh player setup each game (colour + name), mirrors startNewGame -> initPlayers
         vector<Player*> players;
         if (!negotiatePlayers(clientSockets, players))
         {
@@ -372,13 +451,11 @@ int runGameServer()
             break;
         }
 
-        // Run one full game; returns true if both want to play again
         keepPlaying = playOneGame(clientSockets, players);
 
         for (auto p : players) delete p;
     }
 
-    // ---- Cleanup ----
     for (int i = 0; i < PROTOCOL_MAX_CLIENTS; ++i)
         closesocket(clientSockets[i]);
     closesocket(listenSock);
