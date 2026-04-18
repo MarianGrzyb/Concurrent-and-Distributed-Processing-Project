@@ -1,8 +1,3 @@
-// ============================================================
-//  GameClient.cpp
-//  Mirrors game.cpp main() do-while loop with mainMenu().
-// ============================================================
-
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>

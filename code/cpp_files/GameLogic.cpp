@@ -1,7 +1,3 @@
-// ============================================================
-//  GameLogic.cpp — pure game logic, no UI, no sockets
-// ============================================================
-
 #include "../h_files/GameLogic.h"
 #include "../h_files/Definers.h"
 

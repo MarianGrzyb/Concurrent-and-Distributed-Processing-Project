@@ -1,7 +1,3 @@
-// ============================================================
-//  GameServer.cpp
-// ============================================================
-
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
@@ -135,8 +131,8 @@ bool negotiatePlayers(SOCKET clientSockets[2], vector<Player*>& players)
             return false;
 
         cout << "[SERVER] Player " << slot
-             << " | colour: " << colour
-             << " | name: "   << name << endl;
+             << ", colour: " << colour
+             << ", name: "   << name << endl;
     }
     return true;
 }
