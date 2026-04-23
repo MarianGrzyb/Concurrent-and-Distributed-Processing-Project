@@ -27,8 +27,23 @@ The project is built using Object-Oriented Programming (OOP) principles, separat
 `PlayerInitialization.h` / `PlayerInitialization.cpp`: Manages the pre-game setup phase where player details are configured.
 
 ## 3. Listing the methods used in concurrent programming
+##### Multithreading `(std::thread)`: 
+Used to separate the UI/rendering loop from the network communication loop. While one thread handles updating the console screen and listening to local keyboard inputs, a separate background thread listens for incoming data packets (opponent moves) over the network.
+
+##### Concurrency Protections / Mutexes `(std::mutex)`: 
+Used to prevent race conditions. When the network thread receives an opponent's move, it must update the shared allFields vector. Mutex locks ensure that the rendering thread and the network thread do not try to read and write to the board state at the exact same millisecond, which would cause a crash.
+
+###### Asynchronous Socket Listening: 
+Non-blocking sockets or asynchronous network polling are used so the server/client can constantly check for connection drops (e.g., if a client closes their window abruptly) and trigger the safety fallbacks designed to handle those crashes gracefully.
+
+
 
 ## 4. List of external libraries/frameworks used
+This project relies purely on standard libraries and OS-specific APIs. 
+C++ Standard Template Library (STL):
+- `<iostream>` : For standard console input and output.
+- `<vector>` : For dynamic arrays, heavily used to manage the grid of Field objects and the list of Player objects.
+- `<thread>` & `<mutex>`: For implementing the multithreading and concurrency controls required by the client-server architecture.
 
 ## 5. Screenshots of the game
 
@@ -49,5 +64,3 @@ The project is built using Object-Oriented Programming (OOP) principles, separat
 - Client-Server Communication: Ensured correct implementation of methods allowing client-server communication.
 - Multithreading: applied appropriate multithreading and/or multiprocessing, and provided justification for the use of specific communication methods.
 
-##
-###
