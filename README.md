@@ -33,7 +33,7 @@ Used to separate the UI/rendering loop from the network communication loop. Whil
 ##### Concurrency Protections / Mutexes `(std::mutex)`: 
 Used to prevent race conditions. When the network thread receives an opponent's move, it must update the shared allFields vector. Mutex locks ensure that the rendering thread and the network thread do not try to read and write to the board state at the exact same millisecond, which would cause a crash.
 
-###### Asynchronous Socket Listening: 
+##### Asynchronous Socket Listening: 
 Non-blocking sockets or asynchronous network polling are used so the server/client can constantly check for connection drops (e.g., if a client closes their window abruptly) and trigger the safety fallbacks designed to handle those crashes gracefully.
 
 
