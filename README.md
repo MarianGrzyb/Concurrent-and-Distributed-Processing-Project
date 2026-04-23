@@ -33,15 +33,16 @@ The project is built using Object-Oriented Programming (OOP) principles, separat
 ## 5. Screenshots of the game
 
 ## 6. Description of the contributions of individual group members
-### Zuzanna Warchoł: 
-- Documentation: Authored the README file, including the game description, project file structure, concurrent programming methods, external libraries/frameworks list, screenshots, and group contributions.
-- Client-Server Communication: Application of protections in case of connection breaks and handling unusual situations, bugs, or crashes.
-- Testing: Conducted testing of the game.
 
 ### Mateusz Barszczewski
 - Initial Implementation: Handled input handling and color display, created the Main Menu, and managed player initialization.
 - Game Mechanics: Developed the Board (mapping fields and display) and the Main Game Loop, including turn handling and draw handling.
 - Maintenance: Responsible for bug removal and overall code refinements.
+
+### Zuzanna Warchoł
+- Documentation: Authored the README file, including the game description, project file structure, concurrent programming methods, external libraries/frameworks list, screenshots, and group contributions.
+- Client-Server Communication: Application of protections in case of connection breaks and handling unusual situations, bugs, or crashes.
+- Testing: Conducted testing of the game.
 
 ### Tomasz Kruczalak
 - Initial Implementation: Implemented player name changing, victory handling, and game quitting logic.
