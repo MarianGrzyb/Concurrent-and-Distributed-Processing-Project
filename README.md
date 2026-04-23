@@ -9,22 +9,68 @@ The game features a main menu, input validation, and colored console text for a 
 The project is built using Object-Oriented Programming (OOP) principles, separating concerns into distinct C++ header (.h) and source (.cpp) files:
 
 `game.cpp`: The main entry point of the program. It houses the primary game loop, turn management, pawn placement logic, and the algorithm to check for victory conditions across all four directions.
+Functions:
+- `main()`: Launches the application and handles the main menu loop.
+- `startNewGame()`: Preparatory function to initialize players and launch the game loop.
+- `mainGameLoop()`: Controls the flow of the game, alternating turns and checking for win/draw states.
+- `turn()`: Handles the specific sequence of a single player's turn (displaying moves, capturing input, placing pawns).
+- `pawnPlacing()`: Calculates the lowest available row in a chosen column and drops the pawn.
+- `victory()`: A 4-directional algorithm that checks horizontal, vertical, and diagonal lines for a win condition.
+- `determinePossibleMoves()`: Scans the board to show the player which columns are valid for their turn.
+- `determinePlayerOrder()`: Sets who goes first based on chosen colors.
+
+
 
 `Board.h` / `Board.cpp`: Handles the visual representation and rendering of the game grid in the console.
+Functions:
+- `void displayBoard()`
+- `void displayBottomDisplay()` // function to display the bottom display of the board
+- `void displayVerticalFieldDivisors()` // function to display the vertical Field divisors
+- `void displayHorizontalFieldDivisors()` // function to display the horizontal Field divisors
+- `void displayFields()` // function to display Fields, iterates through all the Field instances in 'allFields', then extract the coordinates of a particular field, then iterate through all the coordinates, then extract the coordinates for a particlar point, if the coordinates of a Field point match the coordinates on the board, at last display the symbol of a Field
+- `void displayOutline()` // function to display the outline of the board and all the Fields
+- `void displayBoard()` // function to display the board (the outline as well as all the pawns)
 
 `Definers.h`: A central repository for macros, constants, and configuration values (e.g., board dimensions, string prompts).
+Contents:
+Defines board dimensions, UI text strings, standard keycaps for input, and color codes.
+
 
 `Field.h` / `Field.cpp`: Defines the Field class, representing a single cell on the board, tracking its coordinates and occupancy status.
 
+
 `FieldsInitialization.h` / `FieldInitialization.cpp`: Handles the generation and initial setup of the game board's grid of Field objects.
+Functions:
+- `initFields()` // function to initialize all the Fields and input them into a vector of Fields 'allFields'
+
 
 `KeyboardInputHandling.h` / `KeyboardInputHandling.cpp`: Manages user input safely, ensuring only valid keystrokes are processed and preventing console crashes.
+Functions: 
+- `handleKeyboardInput()` // function to handle all the inputs from the keyboard (when there are options - single characters to choose)
+- `checkKeyboardInputCorrectness()` // function to iterate over the vector of all possible inputs 'inputCharacters' to determine whether a given character stream
+
 
 `MainMenu.h` / `MainMenu.cpp`: Controls the startup interface, allowing users to start a new game or exit.
+Functions:
+- `mainMenu()` // function to handle the Main Menu (all the possible options) and choose the valid option
+- `displayMainMenu()` // function to print the Main Menu
+
+
+
 
 `Player.h` / `Player.cpp`: Defines the Player class, holding player-specific data such as name, assigned color, and pawn symbol.
+Functions: 
+- `setInitialFieldSymbol()` // function to set the initial Field symbol based on colour
+- `setDefaultName()` //function to set default name based on the order (id) of players
 
-`PlayerInitialization.h` / `PlayerInitialization.cpp`: Manages the pre-game setup phase where player details are configured.
+
+
+`PlayerInitialization.h` / `PlayerInitialization.cpp`: Manages the pre-game setup phase where player details are configured. 
+Functions: 
+- `determineTakenColours()` // function to determine which colours have been already taken by other players
+- `determineAvailableColours()` // function making it impossible to choose already taken colour
+- `setNameForThePlayer()` // function to set the name of the player from the console
+- `initPlayers()` // function to initialize players and their attributes
 
 ## 3. Listing the methods used in concurrent programming
 ##### Multithreading `(std::thread)`: 
