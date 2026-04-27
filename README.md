@@ -92,7 +92,12 @@ C++ Standard Template Library (STL):
 - `<thread>` & `<mutex>`: For implementing the multithreading and concurrency controls required by the client-server architecture.
 
 ## 5. Screenshots of the game
-# todo 
+<img width="489" height="185" alt="image" src="https://github.com/user-attachments/assets/8ebf0a6a-addb-412b-a8cf-73b01b2c9a88" />
+<img width="1700" height="1009" alt="image" src="https://github.com/user-attachments/assets/c45f9715-94b8-458d-b282-0f1a3d689de3" />
+<img width="1698" height="1009" alt="image" src="https://github.com/user-attachments/assets/12884a7b-7521-42ff-b444-7bae9b4d9fb4" />
+<img width="2370" height="365" alt="image" src="https://github.com/user-attachments/assets/5e888487-47cc-4089-8bc5-e7574e3eb9ca" />
+<img width="645" height="294" alt="image" src="https://github.com/user-attachments/assets/f70ec814-73e7-4c09-b56e-9b1652a41a77" />
+
 
 ## 6. Description of the contributions of individual group members
 
