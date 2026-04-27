@@ -1,9 +1,4 @@
-// ============================================================
-//  NetworkMessage.cpp
-// ============================================================
-
 #include "../h_files/NetworkMessage.h"
-#include "../h_files/Definers.h"
 
 #include <cstring>
 #include <iostream>
@@ -18,10 +13,7 @@ static RawMessage emptyMsg(char type)
     return m;
 }
 
-// ============================================================
 //  Build — game flow
-// ============================================================
-
 RawMessage buildAssignId(int playerSlot)
 {
     RawMessage m = emptyMsg(MSG_ASSIGN_ID);
@@ -58,10 +50,7 @@ RawMessage buildColumnChoice(int column)
 
 RawMessage buildClientQuit() { return emptyMsg(MSG_CLIENT_QUIT); }
 
-// ============================================================
 //  Build — setup phase
-// ============================================================
-
 // payload[0] = blackAvailable ('1'/'0'), payload[1] = redAvailable ('1'/'0')
 RawMessage buildChooseColour(bool blackAvailable, bool redAvailable)
 {
@@ -75,7 +64,7 @@ RawMessage buildColourTaken()  { return emptyMsg(MSG_COLOUR_TAKEN); }
 RawMessage buildAskName()      { return emptyMsg(MSG_ASK_NAME);     }
 RawMessage buildNameInvalid()  { return emptyMsg(MSG_NAME_INVALID);  }
 
-// payload: "slot|colour|name"  e.g. "1|BLACK|Alice"
+// payload: "slot|color|name"  e.g. "1|BLACK|Alice"
 RawMessage buildSetupDone(int slot, const string& colour, const string& name)
 {
     RawMessage m = emptyMsg(MSG_SETUP_DONE);
@@ -99,10 +88,7 @@ RawMessage buildNameChoice(const string& name)
     return m;
 }
 
-// ============================================================
 //  Parse
-// ============================================================
-
 int parseAssignId(const RawMessage& msg)
 {
     return static_cast<int>(msg.payload[0]);
@@ -161,10 +147,7 @@ void parseSetupDone(const RawMessage& msg, int& slot, string& colour, string& na
     name   = info.substr(second + 1);
 }
 
-// ============================================================
 //  Transport
-// ============================================================
-
 bool sendMessage(SOCKET sock, const RawMessage& msg)
 {
     const char* buf = reinterpret_cast<const char*>(&msg);
@@ -200,7 +183,7 @@ bool recvMessage(SOCKET sock, RawMessage& msg)
     return true;
 }
 
-// ---- Rematch -----------------------------------------------
+// Rematch
 RawMessage buildPlayAgainPrompt() { return emptyMsg(MSG_PLAY_AGAIN_PROMPT); }
 RawMessage buildPlayAgainYes()    { return emptyMsg(MSG_PLAY_AGAIN_YES);    }
 RawMessage buildPlayAgainNo()     { return emptyMsg(MSG_PLAY_AGAIN_NO);     }

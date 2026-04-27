@@ -18,10 +18,6 @@
 
 using namespace std;
 
-// ============================================================
-//  acceptClients
-//  Sequential — order matters (slot 0 = first connector).
-// ============================================================
 bool acceptClients(SOCKET listenSock, SOCKET clientSockets[2])
 {
     cout << "[SERVER] Waiting for " << PROTOCOL_MAX_CLIENTS << " clients..." << endl;
@@ -39,9 +35,6 @@ bool acceptClients(SOCKET listenSock, SOCKET clientSockets[2])
     return true;
 }
 
-// ============================================================
-//  negotiateNameForClient  (unchanged — per-client, no shared state)
-// ============================================================
 static string negotiateNameForClient(SOCKET sock, const string& defaultName)
 {
     while (true)
@@ -69,30 +62,24 @@ static string negotiateNameForClient(SOCKET sock, const string& defaultName)
     }
 }
 
-// ============================================================
 //  SetupContext
-//  Shared state that both setup threads read/write.
-//  Protected by mutex + condition_variable so client 2
-//  cannot pick a colour until client 1 has committed theirs.
-// ============================================================
+//  Shared state that both setup threads read/write. Protected by mutex + condition_variable so
+//  client 2 cannot pick a color until client 1 has committed theirs.
 struct SetupContext
 {
     // --- shared colour registry ---
     mutex              colourMutex;
     condition_variable colourCV;
-    vector<string>     takenColours;     // grows as clients commit
+    vector<string>     takenColours; // grows as clients commit
     int                coloursCommitted = 0; // how many slots filled so far
 
-    // --- results written by each thread, read by main after join ---
+    // results written by each thread, read by main after join
     Player* players[2] = { nullptr, nullptr };
     bool    success[2] = { false,   false   };
 };
 
-// ============================================================
 //  setupThreadFunc
-//  Runs in a dedicated thread for each client.
-//  Negotiates colour (with mutex), then name, then sends SETUP_DONE.
-// ============================================================
+//  Runs in a dedicated thread for each client.  Negotiates color (with mutex), then name, then sends SETUP_DONE.
 static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
 {
     int    slot        = idx + 1;
@@ -100,13 +87,9 @@ static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
                          ? PLAYER_DEFAULT_NAME_1
                          : PLAYER_DEFAULT_NAME_2;
 
-    // ----------------------------------------------------------
-    // COLOUR PHASE
-    // ----------------------------------------------------------
-    // Client 1 (idx=0): picks freely, commits immediately.
-    // Client 2 (idx=1): waits until client 1 has committed (coloursCommitted >= 1), then sees which colour is taken.
+    // Client 1 (idx=0): picks freely, commits immediately and
+    // Client 2 (idx=1): waits until client 1 has committed (coloursCommitted >= 1), then sees which color is taken.
     // This is the critical section that justifies the mutex.
-    // ----------------------------------------------------------
 
     string chosenColour;
 
@@ -169,15 +152,11 @@ static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
         break;
     }
 
-    // ----------------------------------------------------------
     // NAME PHASE  (fully independent — no shared state)
-    // ----------------------------------------------------------
     string chosenName = negotiateNameForClient(sock, defaultName);
     if (chosenName.empty()) chosenName = defaultName;
 
-    // ----------------------------------------------------------
     // CREATE PLAYER + SEND SETUP_DONE
-    // ----------------------------------------------------------
     Player* p = new Player(slot, chosenColour);
     p->setName(chosenName);
 
@@ -196,11 +175,8 @@ static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
     ctx.success[idx] = true;
 }
 
-// ============================================================
 //  negotiatePlayers
-//  Spawns one thread per client so both negotiate simultaneously.
-//  A mutex + condition_variable ensures colour uniqueness.
-// ============================================================
+//  Spawns one thread per client so both negotiate simultaneously, mutex + condition_variable ensures colour uniqueness.
 bool negotiatePlayers(SOCKET clientSockets[2], vector<Player*>& players)
 {
     SetupContext ctx;
@@ -227,10 +203,8 @@ bool negotiatePlayers(SOCKET clientSockets[2], vector<Player*>& players)
     return true;
 }
 
-// ============================================================
 //  broadcastBoardState
 //  Uses two threads to send to both clients simultaneously.
-// ============================================================
 void broadcastBoardState(SOCKET clientSockets[2],
                          const vector<Field*>& allFields,
                          int activeSlot)
@@ -245,9 +219,7 @@ void broadcastBoardState(SOCKET clientSockets[2],
     t1.join();
 }
 
-// ============================================================
 //  getValidatedMove
-// ============================================================
 int getValidatedMove(SOCKET clientSocket,
                      SOCKET /*otherClientSocket*/,
                      const vector<Field*>& allFields)
@@ -283,9 +255,8 @@ int getValidatedMove(SOCKET clientSocket,
     }
 }
 
-// ============================================================
-//  broadcastGameOver
-// ============================================================
+//  broadcastBoardState
+//  Uses two threads to send to both clients simultaneously.
 void broadcastGameOver(SOCKET clientSockets[2], char resultCode)
 {
     RawMessage msg = buildGameOver(resultCode);
@@ -295,9 +266,6 @@ void broadcastGameOver(SOCKET clientSockets[2], char resultCode)
     t1.join();
 }
 
-// ============================================================
-//  playOneGame
-// ============================================================
 static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
 {
     vector<Field*> allFields = initFields();
@@ -390,9 +358,6 @@ static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
     return false;
 }
 
-// ============================================================
-//  runGameServer
-// ============================================================
 int runGameServer()
 {
     WSADATA wsaData;

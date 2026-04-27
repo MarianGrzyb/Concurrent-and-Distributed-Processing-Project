@@ -3,11 +3,9 @@
 
 #include <iostream>
 #include <vector>
+
 using namespace std;
 
-// ============================================================
-//  pawnPlacing — verbatim from game.cpp
-// ============================================================
 void pawnPlacing(vector<Field*>& allFields, char symbol, int columnInput)
 {
     int lowestRow = ROWS_NUMBER;
@@ -28,9 +26,6 @@ void pawnPlacing(vector<Field*>& allFields, char symbol, int columnInput)
     allFields[lowestRowIndex]->setSymbol(symbol);
 }
 
-// ============================================================
-//  fieldAt — verbatim from game.cpp
-// ============================================================
 Field* fieldAt(const vector<Field*>& allFields, int row, int col)
 {
     if (row < 1 || row > ROWS_NUMBER || col < 1 || col > COLUMNS_NUMBER)
@@ -39,9 +34,6 @@ Field* fieldAt(const vector<Field*>& allFields, int row, int col)
     return allFields[(row - 1) * COLUMNS_NUMBER + (col - 1)];
 }
 
-// ============================================================
-//  victory — verbatim from game.cpp
-// ============================================================
 bool victory(vector<Field*>& allFields, char symbol)
 {
     int directions[4][2] = {
@@ -85,9 +77,6 @@ bool victory(vector<Field*>& allFields, char symbol)
     return false;
 }
 
-// ============================================================
-//  isColumnAvailable
-// ============================================================
 bool isColumnAvailable(const vector<Field*>& allFields, int column)
 {
     for (int i = 0; i < (int)allFields.size(); ++i)
@@ -103,9 +92,6 @@ bool isColumnAvailable(const vector<Field*>& allFields, int column)
     return false;
 }
 
-// ============================================================
-//  getAvailableColumns
-// ============================================================
 vector<int> getAvailableColumns(const vector<Field*>& allFields)
 {
     vector<int> available;
@@ -117,9 +103,6 @@ vector<int> getAvailableColumns(const vector<Field*>& allFields)
     return available;
 }
 
-// ============================================================
-//  determinePossibleMoves — verbatim from game.cpp
-// ============================================================
 int determinePossibleMoves(vector<Field*> allFields, vector<char>& validKeyboardInputs)
 {
     int availableColumns = 0;

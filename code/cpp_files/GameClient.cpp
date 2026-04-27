@@ -16,9 +16,6 @@
 
 using namespace std;
 
-// ============================================================
-//  connectToGameServer
-// ============================================================
 SOCKET connectToGameServer()
 {
     WSADATA wsaData;
@@ -55,9 +52,6 @@ SOCKET connectToGameServer()
     return sock;
 }
 
-// ============================================================
-//  rebuildFieldsFromSymbols
-// ============================================================
 vector<Field*> rebuildFieldsFromSymbols(const vector<char>& symbols)
 {
     vector<Field*> allFields = initFields();
@@ -76,9 +70,6 @@ void freeFields(vector<Field*>& allFields)
     allFields.clear();
 }
 
-// ============================================================
-//  promptColumnChoice
-// ============================================================
 int promptColumnChoice()
 {
     while (true)
@@ -92,10 +83,6 @@ int promptColumnChoice()
     }
 }
 
-// ============================================================
-//  handleSetupPhase — colour + name negotiation
-//  Mirrors PlayerInitialization.cpp UI exactly.
-// ============================================================
 bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName)
 {
     while (true)
@@ -211,11 +198,6 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
     }
 }
 
-// ============================================================
-//  showMainMenu
-//  Mirrors mainMenu() from MainMenu.cpp.
-//  Returns MAIN_MENU_START_NEW_GAME_KEYCAP or MAIN_MENU_QUIT_THE_GAME_KEYCAP.
-// ============================================================
 static char showMainMenu()
 {
     cout << MAIN_MENU_START_NEW_GAME_DISPLAY;
@@ -236,12 +218,6 @@ static char showMainMenu()
     }
 }
 
-// ============================================================
-//  playOneGame
-//  Mirrors mainGameLoop() on the client side:
-//  receives board states, sends column choices.
-//  Returns true when the game ends (win/draw/quit).
-// ============================================================
 static void playOneGame(SOCKET sock,
                         HANDLE consoleColour,
                         int mySlot,
@@ -265,7 +241,6 @@ static void playOneGame(SOCKET sock,
 
         switch (msg.type)
         {
-            // ---- Board update (mirrors displayBoard call in mainGameLoop) ----
             case MSG_BOARD_STATE:
             {
                 lastSymbols          = parseBoardSymbols(msg);
@@ -275,7 +250,6 @@ static void playOneGame(SOCKET sock,
                 displayBoard(allFields);
                 freeFields(allFields);
 
-                // Mirror turn() header display
                 if (activeSlot == mySlot)
                     cout << TURN_COLOUR_DISPLAY << myColour
                          << TURN_PLAYER_DISPLAY << myName
@@ -286,13 +260,11 @@ static void playOneGame(SOCKET sock,
                 break;
             }
 
-            // ---- Our turn (mirrors turn() from game.cpp exactly) ----
             case MSG_YOUR_TURN:
             {
-                // Rebuild fields from cached snapshot so determinePossibleMoves works
                 vector<Field*> allFields = rebuildFieldsFromSymbols(lastSymbols);
 
-                // mirrors turn(): print possible moves with column numbers
+                // print possible moves with column numbers
                 cout << TURN_POSSIBLE_MOVES_DISPLAY;
                 vector<char> validKeyboardInputs;
                 int availableColumns = determinePossibleMoves(allFields, validKeyboardInputs);
@@ -304,7 +276,7 @@ static void playOneGame(SOCKET sock,
                     break;
                 }
 
-                // Read input — mirrors handleKeyboardInput() + gameQuitting()
+                // Read input
                 char validInput = 0;
                 while (!validInput)
                 {
@@ -320,7 +292,7 @@ static void playOneGame(SOCKET sock,
                         cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
                 }
 
-                // Quit option — mirrors gameQuitting()
+                // Quit option
                 if (validInput == TURN_QUIT_TO_MAIN_MENU_KEYCAP)
                 {
                     cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY
@@ -381,7 +353,6 @@ static void playOneGame(SOCKET sock,
                 // Accepted — next message will be MSG_BOARD_STATE
                 break;
 
-            // ---- Game over (mirrors victory/draw display in mainGameLoop) ----
             case MSG_GAME_OVER:
             {
                 char result = parseGameOverResult(msg);
@@ -421,11 +392,6 @@ static void playOneGame(SOCKET sock,
     }
 }
 
-// ============================================================
-//  runGameClient
-//  Outer loop mirrors game.cpp main():
-//    do { mainMenu -> startNewGame } while(true)
-// ============================================================
 int runGameClient()
 {
     SOCKET sock = connectToGameServer();
@@ -437,19 +403,19 @@ int runGameClient()
     // Mirror game.cpp main() do-while
     do
     {
-        // Show main menu — mirrors mainMenu()
+        // Show main menu
         char currentOption = showMainMenu();
 
         if (currentOption == MAIN_MENU_QUIT_THE_GAME_KEYCAP)
         {
-            // Tell server we're done
+            // Tell server clients are created
             sendMessage(sock, buildClientQuit());
             break;
         }
 
-        // MAIN_MENU_START_NEW_GAME_KEYCAP — mirrors startNewGame()
+        // MAIN_MENU_START_NEW_GAME_KEYCAP
 
-        // Setup phase: colour + name (mirrors initPlayers())
+        // Setup phase: colour + name
         int    mySlot   = -1;
         string myColour = "";
         string myName   = "";
@@ -460,18 +426,18 @@ int runGameClient()
             break;
         }
 
-        // Play the game (mirrors mainGameLoop())
+        // Play the game
         playOneGame(sock, consoleColour, mySlot, myColour, myName);
 
-        // Server will send MSG_PLAY_AGAIN_PROMPT — mirrors the do-while check
+        // Server will send MSG_PLAY_AGAIN_PROMPT
         RawMessage prompt;
         if (!recvMessage(sock, prompt) || prompt.type != MSG_PLAY_AGAIN_PROMPT)
             break;
 
-        // Ask locally whether to play again — mirrors the do-while in main()
+        // Ask locally whether to play again
         cout << "\n";
-        cout << MAIN_MENU_START_NEW_GAME_DISPLAY;   // [s] to start new game
-        cout << MAIN_MENU_QUIT_DISPLAY;              // [q] to quit
+        cout << MAIN_MENU_START_NEW_GAME_DISPLAY; // [s] to start new game
+        cout << MAIN_MENU_QUIT_DISPLAY; // [q] to quit
         cout << MAIN_MENU_FOOTER_DISPLAY;
 
         char again = 0;

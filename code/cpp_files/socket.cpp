@@ -9,7 +9,7 @@ int connectToServer() {
     WSADATA wsaData;
     int wsaerror;
 
-    // --- STEP 1: Initialize WinSock ---
+    // Initialize WinSock
     WORD wVersionRequested = MAKEWORD(2, 2);
     wsaerror = WSAStartup(wVersionRequested, &wsaData);
 
@@ -21,8 +21,7 @@ int connectToServer() {
         std::cout << "The status: " << wsaData.szSystemStatus << std::endl;
     }
 
-    // --- STEP 2: Create the client socket ---
-    // Same parameters as server — TCP over IPv4
+    // Create the client socket
     clientSocket = INVALID_SOCKET;
     clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -34,14 +33,13 @@ int connectToServer() {
         std::cout << "socket() is OK" << std::endl;
     }
 
-    // --- STEP 3: Specify the server address to connect to ---
-    // This is the server's IP and port — must match what server bound to
+    // Specify the server address to connect
     sockaddr_in clientService;
     clientService.sin_family = AF_INET;
     InetPton(AF_INET, "127.0.0.1", &clientService.sin_addr.s_addr); // server is on localhost
     clientService.sin_port = htons(port);
 
-    // --- STEP 4: Connect to the server ---
+    // Connect to the server
     // connect() reaches out to the server's IP:port and establishes the connection
     if (connect(clientSocket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
         std::cout << "connect() failed: " << WSAGetLastError() << std::endl;
@@ -71,7 +69,7 @@ int connectToServer() {
     else
         WSACleanup();
 
-    // --- STEP 5: Cleanup ---
+    // Cleanup
     closesocket(clientSocket);
     system("pause");
     WSACleanup();
