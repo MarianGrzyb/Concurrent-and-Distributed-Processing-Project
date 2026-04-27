@@ -1,6 +1,6 @@
-#include "FieldsInitialization.h"
-#include "Definers.h"
-#include "Field.h"
+#include "../h_files/FieldsInitialization.h"
+#include "../h_files/Definers.h"
+#include "../h_files/Field.h"
 
 #include <iostream>
 #include <vector>

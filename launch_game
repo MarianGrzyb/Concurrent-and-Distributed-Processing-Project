@@ -1,0 +1,21 @@
+Add launch_game.bat (or call it in any other way) into cmake-build-debug
+
+@echo off
+cd /d "%~dp0"
+
+:: Add CLion's bundled MinGW to PATH so the DLLs are found
+set PATH=C:\CLion 2025.3.3\bin\mingw\bin;%PATH%
+
+echo Starting GameServer...
+start "GameServer" cmd /k GameServer.exe
+
+echo Waiting 2 seconds for server to bind...
+timeout /t 2 /nobreak > nul
+
+echo Starting GameClient 1 (Player 1)...
+start "GameClient - Player 1" cmd /k GameClient.exe
+
+timeout /t 1 /nobreak > nul
+
+echo Starting GameClient 2 (Player 2)...
+start "GameClient - Player 2" cmd /k GameClient.exe

@@ -1,7 +1,7 @@
-#include "PlayerInitialization.h"
-#include "Definers.h"
-#include "Player.h"
-#include "KeyboardInputHandling.h"
+#include "../h_files/PlayerInitialization.h"
+#include "../h_files/Definers.h"
+#include "../h_files/Player.h"
+#include "../h_files/KeyboardInputHandling.h"
 
 #include <iostream>
 #include <string>

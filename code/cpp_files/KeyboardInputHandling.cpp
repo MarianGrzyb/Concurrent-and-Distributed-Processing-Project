@@ -1,5 +1,5 @@
-#include "KeyboardInputHandling.h"
-#include "Definers.h"
+#include "../h_files/KeyboardInputHandling.h"
+#include "../h_files/Definers.h"
 
 #include <iostream>
 #include <string>
