@@ -1,4 +1,4 @@
 #pragma once
-#include "../h_files/Field.h"
+#include "Field.h"
 
 vector<Field*> initFields();

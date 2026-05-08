@@ -1,6 +1,6 @@
-#include "../h_files/MainMenu.h"
-#include "../h_files/Definers.h"
-#include "../h_files/KeyboardInputHandling.h"
+#include "MainMenu.h"
+#include "Definers.h"
+#include "KeyboardInputHandling.h"
 
 #include <iostream>
 #include <vector>

@@ -1,4 +1,4 @@
-#include "../h_files/GameClient.h"
+#include "GameClient.h"
 
 int main()
 {

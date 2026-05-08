@@ -1,4 +1,4 @@
-#include "../h_files/NetworkMessage.h"
+#include "NetworkMessage.h"
 
 #include <cstring>
 #include <iostream>
@@ -70,7 +70,7 @@ RawMessage buildSetupDone(int slot, const string& colour, const string& name)
     RawMessage m = emptyMsg(MSG_SETUP_DONE);
     string info = to_string(slot) + "|" + colour + "|" + name;
     // copy up to PROTOCOL_PAYLOAD_SIZE-1 chars
-    strncpy(m.payload, info.c_str(), PROTOCOL_PAYLOAD_SIZE - 1);
+    strncpy_s(m.payload, info.c_str(), PROTOCOL_PAYLOAD_SIZE - 1);
     return m;
 }
 
@@ -84,7 +84,7 @@ RawMessage buildColourChoice(char keycap)
 RawMessage buildNameChoice(const string& name)
 {
     RawMessage m = emptyMsg(MSG_NAME_CHOICE);
-    strncpy(m.payload, name.c_str(), PROTOCOL_PAYLOAD_SIZE - 1);
+    strncpy_s(m.payload, name.c_str(), PROTOCOL_PAYLOAD_SIZE - 1);
     return m;
 }
 

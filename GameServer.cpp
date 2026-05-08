@@ -7,14 +7,16 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "../h_files/GameServer.h"
-#include "../h_files/NetworkMessage.h"
-#include "../h_files/Protocol.h"
-#include "../h_files/Definers.h"
-#include "../h_files/Field.h"
-#include "../h_files/Player.h"
-#include "../h_files/GameLogic.h"
-#include "../h_files/FieldsInitialization.h"
+#include "GameServer.h"
+#include "NetworkMessage.h"
+#include "Protocol.h"
+#include "Definers.h"
+#include "Field.h"
+#include "Player.h"
+#include "GameLogic.h"
+#include "FieldsInitialization.h"
+
+#pragma comment(lib, "Ws2_32.lib")
 
 using namespace std;
 

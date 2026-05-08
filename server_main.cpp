@@ -1,4 +1,4 @@
-#include "../h_files/server.h"
+#include "server.h"
 
 int main() {
     serverInitiation();

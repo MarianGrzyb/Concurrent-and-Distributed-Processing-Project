@@ -1,5 +1,5 @@
-#include "../h_files/Field.h"
-#include "../h_files/Definers.h"
+#include "Field.h"
+#include "Definers.h"
 
 Field::Field() {}
 

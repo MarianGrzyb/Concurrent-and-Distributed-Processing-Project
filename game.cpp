@@ -1,14 +1,14 @@
-#include "../h_files/Definers.h"
-#include "../h_files/Player.h"
-#include "../h_files/Field.h"
-#include "../h_files/KeyboardInputHandling.h"
-#include "../h_files/MainMenu.h"
-#include "../h_files/PlayerInitialization.h"
-#include "../h_files/FieldsInitialization.h"
-#include "../h_files/Board.h"
+#include "Definers.h"
+#include "Player.h"
+#include "Field.h"
+#include "KeyboardInputHandling.h"
+#include "MainMenu.h"
+#include "PlayerInitialization.h"
+#include "FieldsInitialization.h"
+#include "Board.h"
 
-#include "../h_files/server.h"
-#include "../h_files/socket.h"
+#include "server.h"
+#include "socket.h"
 
 #include <iostream>
 #include <vector>
