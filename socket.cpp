@@ -1,7 +1,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
-#include "../h_files/socket.h"
+#include "socket.h"
 
 int connectToServer() {
     SOCKET clientSocket;

@@ -5,14 +5,14 @@
 #include <vector>
 #include <string>
 
-#include "../h_files/GameClient.h"
-#include "../h_files/NetworkMessage.h"
-#include "../h_files/Protocol.h"
-#include "../h_files/Definers.h"
-#include "../h_files/Field.h"
-#include "../h_files/Board.h"
-#include "../h_files/FieldsInitialization.h"
-#include "../h_files/GameLogic.h"
+#include "GameClient.h"
+#include "NetworkMessage.h"
+#include "Protocol.h"
+#include "Definers.h"
+#include "Field.h"
+#include "Board.h"
+#include "FieldsInitialization.h"
+#include "GameLogic.h"
 
 using namespace std;
 
@@ -93,7 +93,12 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
 
         if (msg.type == MSG_CHOOSE_COLOUR)
         {
-            auto [blackAvailable, redAvailable] = parseChooseColour(msg);
+            pair<bool, bool> pair;
+            bool blackAvailable, redAvailable = false;
+            pair = parseChooseColour(msg);
+
+            blackAvailable = pair.first;
+            redAvailable = pair.second;
 
             cout << PLAYER_CHOOSE_COLOUR_DISPLAY;
 

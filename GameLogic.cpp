@@ -1,5 +1,5 @@
-#include "../h_files/GameLogic.h"
-#include "../h_files/Definers.h"
+#include "GameLogic.h"
+#include "Definers.h"
 
 #include <iostream>
 #include <vector>

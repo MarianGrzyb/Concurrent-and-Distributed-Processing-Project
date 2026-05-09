@@ -1,4 +1,4 @@
-#include "../h_files/GameServer.h"
+#include "GameServer.h"
 
 int main()
 {

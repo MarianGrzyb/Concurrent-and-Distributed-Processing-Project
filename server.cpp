@@ -1,7 +1,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
-#include "../h_files/server.h"
+#include "server.h"
 
 int serverInitiation() {
     SOCKET serverSocket, acceptSocket;
@@ -36,7 +36,7 @@ int serverInitiation() {
     // Bind the socket to an address and port
     sockaddr_in service;
     service.sin_family = AF_INET;
-    InetPton(AF_INET, "127.0.0.1", &service.sin_addr.s_addr); // listen on localhost
+    InetPton(AF_INET, L"127.0.0.1", &service.sin_addr.s_addr); // listen on localhost
     service.sin_port = htons(port); // htons converts port to correct byte order
 
     if (bind(serverSocket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
