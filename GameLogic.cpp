@@ -121,9 +121,7 @@ int determinePossibleMoves(vector<Field*> allFields, vector<char>& validKeyboard
     }
 
     if (availableColumns != 0)
-    {
         cout << TURN_QUIT_TO_MAIN_MENU_DISPLAY;
-    }
 
     return availableColumns;
 }

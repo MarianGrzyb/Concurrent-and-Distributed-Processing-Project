@@ -36,7 +36,7 @@ SOCKET connectToGameServer()
 
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port   = htons(PROTOCOL_PORT);
+    serverAddr.sin_port = htons(PROTOCOL_PORT);
     InetPton(AF_INET, "127.0.0.1", &serverAddr.sin_addr.s_addr);
 
     cout << "[CLIENT] Connecting to server on port " << PROTOCOL_PORT << "..." << endl;
@@ -83,7 +83,7 @@ SOCKET reconnectToServer(int mySlot)
 
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port   = htons(RECONNECT_PORT);
+    serverAddr.sin_port = htons(RECONNECT_PORT);
     InetPton(AF_INET, "127.0.0.1", &serverAddr.sin_addr.s_addr);
 
     if (connect(sock, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
@@ -158,24 +158,41 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
             redAvailable = pair.second;
 
             cout << PLAYER_CHOOSE_COLOUR_DISPLAY;
-            if (blackAvailable) cout << PLAYER_CHOOSE_COLOUR_BLACK_AVAILABLE_DISPLAY;
-            else                cout << PLAYER_CHOOSE_COLOUR_BLACK_UNAVAILABLE_DISPLAY;
-            if (redAvailable)   cout << PLAYER_CHOOSE_COLOUR_RED_AVAILABLE_DISPLAY;
-            else                cout << PLAYER_CHOOSE_COLOUR_RED_UNAVAILABLE_DISPLAY;
+
+            if (blackAvailable)
+                cout << PLAYER_CHOOSE_COLOUR_BLACK_AVAILABLE_DISPLAY;
+            else
+                cout << PLAYER_CHOOSE_COLOUR_BLACK_UNAVAILABLE_DISPLAY;
+
+            if (redAvailable)
+                cout << PLAYER_CHOOSE_COLOUR_RED_AVAILABLE_DISPLAY;
+            else
+                cout << PLAYER_CHOOSE_COLOUR_RED_UNAVAILABLE_DISPLAY;
+
             cout << PLAYER_CHOOSE_COLOUR_FOOTER_DISPLAY;
 
             vector<char> validInputs;
-            if (blackAvailable) validInputs.push_back(COLOUR_BLACK_KEYCAP);
-            if (redAvailable)   validInputs.push_back(COLOUR_RED_KEYCAP);
+
+            if (blackAvailable)
+                validInputs.push_back(COLOUR_BLACK_KEYCAP);
+
+            if (redAvailable)
+                validInputs.push_back(COLOUR_RED_KEYCAP);
 
             char chosen = 0;
             while (!chosen)
             {
-                string input; cin >> input;
+                string input;
+                cin >> input;
                 if (input.size() == 1)
-                    for (char v : validInputs)
-                        if (input[0] == v) { chosen = input[0]; break; }
-                if (!chosen) cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
+                    for (char v : validInputs) {
+                        if (input[0] == v) {
+                            chosen = input[0];
+                            break;
+                        }
+                    }
+                if (!chosen)
+                    cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
             }
             sendMessage(sock, buildColourChoice(chosen));
             continue;
@@ -201,13 +218,12 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
                     (input[0] == PLAYER_NAME_CHANGE_CHANGE_THE_NAME_KEYCAP ||
                      input[0] == PLAYER_NAME_CHANGE_DO_NOT_CHANGE_THE_NAME_KEYCAP))
                     choice = input[0];
-                else cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
+                else
+                    cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
             }
 
             if (choice == PLAYER_NAME_CHANGE_DO_NOT_CHANGE_THE_NAME_KEYCAP)
-            {
                 sendMessage(sock, buildNameChoice(""));
-            }
             else
             {
                 string name;
@@ -231,13 +247,14 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
         if (msg.type == MSG_SETUP_DONE)
         {
             parseSetupDone(msg, mySlot, myColour, myName);
-            cout << PLAYER_NAME_CHANGE_NEW_NAME_DISPLAY << myName
-                 << PLAYER_NAME_CHANGE_SET_NAME_FOOTER_DISPLAY;
+            cout << PLAYER_NAME_CHANGE_NEW_NAME_DISPLAY << myName << PLAYER_NAME_CHANGE_SET_NAME_FOOTER_DISPLAY;
             cout << "\nYou are Player " << mySlot << ' ';
+
             if (myColour == COLOUR_BLACK_NAME)
                 cout << PLAYER_CHOOSE_COLOUR_BLACK_AVAILABLE_DISPLAY;
             else
                 cout << PLAYER_CHOOSE_COLOUR_RED_AVAILABLE_DISPLAY;
+
             cout << "\nWaiting for game to start...\n";
             return true;
         }
@@ -292,9 +309,7 @@ static void playOneGame(SOCKET sock, HANDLE consoleColour, int mySlot, const str
                 freeFields(allFields);
 
                 if (activeSlot == mySlot)
-                    cout << TURN_COLOUR_DISPLAY << myColour
-                         << TURN_PLAYER_DISPLAY << myName
-                         << TURN_FOOTER_DISPLAY;
+                    cout << TURN_COLOUR_DISPLAY << myColour << TURN_PLAYER_DISPLAY << myName << TURN_FOOTER_DISPLAY;
                 else
                     cout << "  Waiting for opponent...\n";
                 break;
@@ -315,16 +330,19 @@ static void playOneGame(SOCKET sock, HANDLE consoleColour, int mySlot, const str
                 {
                     string input; cin >> input;
                     if (input.size() == 1)
-                        for (char v : validKeyboardInputs)
-                            if (input[0] == v) { validInput = input[0]; break; }
+                        for (char v : validKeyboardInputs) {
+                            if (input[0] == v) {
+                                validInput = input[0];
+                                break;
+                            }
+                        }
                     if (!validInput)
                         cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
                 }
 
                 if (validInput == TURN_QUIT_TO_MAIN_MENU_KEYCAP)
                 {
-                    cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY << myName
-                         << TURN_QUIT_TO_MAIN_MENU_DESCRIPTION_DISPLAY;
+                    cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY << myName << TURN_QUIT_TO_MAIN_MENU_DESCRIPTION_DISPLAY;
                     sendMessage(sock, buildClientQuit());
                     running = false;
                     break;
@@ -348,16 +366,19 @@ static void playOneGame(SOCKET sock, HANDLE consoleColour, int mySlot, const str
                 {
                     string input; cin >> input;
                     if (input.size() == 1)
-                        for (char v : validKeyboardInputs)
-                            if (input[0] == v) { validInput = input[0]; break; }
+                        for (char v : validKeyboardInputs) {
+                            if (input[0] == v) {
+                                validInput = input[0];
+                                break;
+                            }
+                        }
                     if (!validInput)
                         cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
                 }
 
                 if (validInput == TURN_QUIT_TO_MAIN_MENU_KEYCAP)
                 {
-                    cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY << myName
-                         << TURN_QUIT_TO_MAIN_MENU_DESCRIPTION_DISPLAY;
+                    cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY << myName << TURN_QUIT_TO_MAIN_MENU_DESCRIPTION_DISPLAY;
                     sendMessage(sock, buildClientQuit());
                     running = false;
                 }
@@ -394,26 +415,20 @@ static void playOneGame(SOCKET sock, HANDLE consoleColour, int mySlot, const str
                 char result = parseGameOverResult(msg);
 
                 if (result == RESULT_DRAW)
-                {
                     cout << DRAW_EVENT_DESCRIPTION_DISPLAY;
-                }
                 else
                 {
                     int winnerSlot = (result == RESULT_WIN_PLAYER1) ? 1 : 2;
                     if (winnerSlot == mySlot)
                     {
                         SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_GREEN);
-                        cout << WIN_EVENT_PLAYER_DISPLAY << myName
-                             << WIN_EVENT_COLOUR_DISPLAY << myColour
-                             << WIN_EVENT_FOOTER_DISPLAY;
+                        cout << WIN_EVENT_PLAYER_DISPLAY << myName << WIN_EVENT_COLOUR_DISPLAY << myColour << WIN_EVENT_FOOTER_DISPLAY;
                         SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_DEFAULT);
                     }
                     else
                     {
                         SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_RED);
-                        cout << WIN_EVENT_PLAYER_DISPLAY << myName
-                             << WIN_EVENT_COLOUR_DISPLAY << myColour
-                             << LOST_EVENT_FOOTER_DISPLAY;
+                        cout << WIN_EVENT_PLAYER_DISPLAY << myName << WIN_EVENT_COLOUR_DISPLAY << myColour << LOST_EVENT_FOOTER_DISPLAY;
                         SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_DEFAULT);
                     }
                 }

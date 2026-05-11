@@ -33,7 +33,7 @@ void determinePlayerOrder(vector<Player*> players, Player* firstPlayer, Player* 
 	}
 }
 
-// Prints available columns and fills validKeyboardInputs. Returns number of available columns found.
+// prints available columns and fills validKeyboardInputs. Returns number of available columns found
 int determinePossibleMoves(vector<Field*> allFields, vector<char>& validKeyboardInputs)
 {
 	int availableColumns = 0;
@@ -77,7 +77,7 @@ bool gameQuitting(char validInput, bool* quitGame, Player currentPlayer)
 	return false;
 }
 
-// Places a pawn in the lowest unoccupied row of the chosen column
+// function to place a pawn in the lowest unoccupied row of the chosen column
 void pawnPlacing(vector<Field*>& allFields, char symbol, int columnInput)
 {
 	int lowestRow = ROWS_NUMBER;

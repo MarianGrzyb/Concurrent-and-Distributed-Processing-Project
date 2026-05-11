@@ -12,9 +12,9 @@
 
 using namespace std;
 
-int            runGameClient();
-SOCKET         connectToGameServer();
+int runGameClient();
+SOCKET connectToGameServer();
 vector<Field*> rebuildFieldsFromSymbols(const vector<char>& symbols);
-void           freeFields(vector<Field*>& allFields);
-int            promptColumnChoice();
-bool           handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName);
+void freeFields(vector<Field*>& allFields);
+int promptColumnChoice();
+bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName);

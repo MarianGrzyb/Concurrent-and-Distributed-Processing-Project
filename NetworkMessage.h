@@ -1,7 +1,5 @@
 #pragma once
 
-//  NetworkMessage.h — helpers for building, parsing, sending and receiving
-
 #include "Protocol.h"
 #include "Field.h"
 
@@ -27,7 +25,7 @@ RawMessage buildGameOver(char resultCode);
 RawMessage buildColumnChoice(int column);
 RawMessage buildClientQuit();
 
-// builders for the particular setup
+// builders for the setup
 RawMessage buildChooseColour(bool blackAvailable, bool redAvailable);
 RawMessage buildColourTaken();
 RawMessage buildAskName();
@@ -45,12 +43,13 @@ int parseColumnChoice(const RawMessage& msg);
 char parseGameOverResult(const RawMessage& msg);
 char parseColourChoice(const RawMessage& msg);   // returns 'b' or 'r'
 string parseNameChoice(const RawMessage& msg);
+
 // parseChooseColour: returns pair<blackAvailable, redAvailable>
 pair<bool,bool> parseChooseColour(const RawMessage& msg);
 // parseSetupDone: fills slot, colour, name
 void parseSetupDone(const RawMessage& msg, int& slot, string& colour, string& name);
 
-// flags for sending and receiving messagees
+// flags for sending and receiving messages
 bool sendMessage(SOCKET sock, const RawMessage& msg);
 bool recvMessage(SOCKET sock, RawMessage& msg);
 

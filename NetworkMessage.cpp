@@ -12,7 +12,7 @@ static RawMessage emptyMsg(char type) {
     return m;
 }
 
-//  Build — game flow
+//  Build game flow
 RawMessage buildAssignId(int playerSlot) {
     RawMessage m = emptyMsg(MSG_ASSIGN_ID);
     m.payload[0] = static_cast<char>(playerSlot);
@@ -21,8 +21,9 @@ RawMessage buildAssignId(int playerSlot) {
 
 RawMessage buildBoardState(const vector<Field *> &allFields, int activePlayerSlot) {
     RawMessage m = emptyMsg(MSG_BOARD_STATE);
-    for (int i = 0; i < (int) allFields.size() && i < PROTOCOL_BOARD_CELLS; ++i)
+    for (int i = 0; i < (int) allFields.size() && i < PROTOCOL_BOARD_CELLS; ++i) {
         m.payload[i] = allFields[i]->getSymbol();
+    }
     m.payload[PROTOCOL_BOARD_CELLS] = static_cast<char>('0' + activePlayerSlot);
     return m;
 }
@@ -45,7 +46,7 @@ RawMessage buildColumnChoice(int column) {
 
 RawMessage buildClientQuit() { return emptyMsg(MSG_CLIENT_QUIT); }
 
-//  Build — setup phase
+//  Build setup phase
 // payload[0] = blackAvailable ('1'/'0'), payload[1] = redAvailable ('1'/'0')
 RawMessage buildChooseColour(bool blackAvailable, bool redAvailable) {
     RawMessage m = emptyMsg(MSG_CHOOSE_COLOUR);
@@ -58,7 +59,7 @@ RawMessage buildColourTaken() { return emptyMsg(MSG_COLOUR_TAKEN); }
 RawMessage buildAskName() { return emptyMsg(MSG_ASK_NAME); }
 RawMessage buildNameInvalid() { return emptyMsg(MSG_NAME_INVALID); }
 
-// payload: "slot|color|name"  e.g. "1|BLACK|Alice"
+// payload: "slot|color|name"  e.g. "1|BLACK|tomek"
 RawMessage buildSetupDone(int slot, const string &colour, const string &name) {
     RawMessage m = emptyMsg(MSG_SETUP_DONE);
     string info = to_string(slot) + "|" + colour + "|" + name;
@@ -80,9 +81,7 @@ RawMessage buildNameChoice(const string &name) {
 }
 
 //  Parse
-int parseAssignId(const RawMessage &msg) {
-    return static_cast<int>(msg.payload[0]);
-}
+int parseAssignId(const RawMessage &msg) { return static_cast<int>(msg.payload[0]); }
 
 vector<char> parseBoardSymbols(const RawMessage &msg) {
     vector<char> s;
@@ -92,26 +91,17 @@ vector<char> parseBoardSymbols(const RawMessage &msg) {
     return s;
 }
 
-int parseActiveTurn(const RawMessage &msg) {
-    return static_cast<int>(msg.payload[PROTOCOL_BOARD_CELLS] - '0');
-}
+int parseActiveTurn(const RawMessage &msg) { return static_cast<int>(msg.payload[PROTOCOL_BOARD_CELLS] - '0'); }
 
-int parseColumnChoice(const RawMessage &msg) {
-    return static_cast<int>(msg.payload[0] - '0');
-}
+int parseColumnChoice(const RawMessage &msg) { return static_cast<int>(msg.payload[0] - '0'); }
 
-char parseGameOverResult(const RawMessage &msg) {
-    return msg.payload[0];
-}
+char parseGameOverResult(const RawMessage &msg) { return msg.payload[0]; }
 
-char parseColourChoice(const RawMessage &msg) {
-    return msg.payload[0]; // 'b' or 'r'
-}
+// 'b' or 'r'
+char parseColourChoice(const RawMessage &msg) { return msg.payload[0]; }
 
-string parseNameChoice(const RawMessage &msg) {
-    // payload is null-terminated string
-    return string(msg.payload);
-}
+// payload is null-terminated string
+string parseNameChoice(const RawMessage &msg) { return string(msg.payload); }
 
 pair<bool, bool> parseChooseColour(const RawMessage &msg) {
     bool black = (msg.payload[0] == '1');
@@ -160,56 +150,37 @@ bool recvMessage(SOCKET sock, RawMessage &msg) {
 }
 
 // Rematch
-RawMessage buildPlayAgainPrompt() {
-    return emptyMsg(MSG_PLAY_AGAIN_PROMPT);
-}
+RawMessage buildPlayAgainPrompt() { return emptyMsg(MSG_PLAY_AGAIN_PROMPT); }
 
-RawMessage buildPlayAgainYes() {
-    return emptyMsg(MSG_PLAY_AGAIN_YES);
-}
+RawMessage buildPlayAgainYes() { return emptyMsg(MSG_PLAY_AGAIN_YES); }
 
-RawMessage buildPlayAgainNo() {
-    return emptyMsg(MSG_PLAY_AGAIN_NO);
-}
+RawMessage buildPlayAgainNo() { return emptyMsg(MSG_PLAY_AGAIN_NO); }
 
 // Disconnect/reconnect
-RawMessage buildOpponentQuit() {
-    return emptyMsg(MSG_OPPONENT_QUIT);
-}
+RawMessage buildOpponentQuit() { return emptyMsg(MSG_OPPONENT_QUIT); }
 
-RawMessage buildOpponentDisconnected() {
-    return emptyMsg(MSG_OPPONENT_DISCONNECTED);
-}
+RawMessage buildOpponentDisconnected() { return emptyMsg(MSG_OPPONENT_DISCONNECTED); }
 
-RawMessage buildReconnectSuccess() {
-    return emptyMsg(MSG_RECONNECT_SUCCESS);
-}
+RawMessage buildReconnectSuccess() { return emptyMsg(MSG_RECONNECT_SUCCESS); }
 
-RawMessage buildReconnectFailed() {
-    return emptyMsg(MSG_RECONNECT_FAILED);
-}
+RawMessage buildReconnectFailed() { return emptyMsg(MSG_RECONNECT_FAILED); }
 
 // payload[0] = slot (1 or 2) so server knows who is reconnecting
-RawMessage buildReconnectHello(int slot)
-{
+RawMessage buildReconnectHello(int slot) {
     RawMessage m = emptyMsg(MSG_RECONNECT_HELLO);
     m.payload[0] = static_cast<char>(slot);
     return m;
 }
 
-int parseReconnectHello(const RawMessage& msg) {
-    return static_cast<int>(msg.payload[0]);
-}
+int parseReconnectHello(const RawMessage &msg) { return static_cast<int>(msg.payload[0]); }
 
-RawMessage buildNormalConnect()
-{
+RawMessage buildNormalConnect() {
     RawMessage msg{};
     msg.type = MSG_NORMAL_CONNECT;
     return msg;
 }
 
-RawMessage buildReconnectRequired()
-{
+RawMessage buildReconnectRequired() {
     RawMessage msg{};
     msg.type = MSG_RECONNECT_REQUIRED;
     return msg;
