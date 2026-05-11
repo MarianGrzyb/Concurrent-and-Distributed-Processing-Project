@@ -1,8 +1,6 @@
 #pragma once
 
-// ============================================================
-//  NetworkMessage.h — build / parse / send / recv helpers
-// ============================================================
+//  NetworkMessage.h — helpers for building, parsing, sending and receiving
 
 #include "Protocol.h"
 #include "Field.h"
@@ -19,7 +17,7 @@ struct RawMessage
     char payload[PROTOCOL_PAYLOAD_SIZE];
 };
 
-// ---- Game flow ---------------------------------------------
+// builders for the game 
 RawMessage buildAssignId(int playerSlot);
 RawMessage buildBoardState(const vector<Field*>& allFields, int activePlayerSlot);
 RawMessage buildYourTurn();
@@ -29,7 +27,7 @@ RawMessage buildGameOver(char resultCode);
 RawMessage buildColumnChoice(int column);
 RawMessage buildClientQuit();
 
-// ---- Setup phase -------------------------------------------
+// builders for the particular setup
 RawMessage buildChooseColour(bool blackAvailable, bool redAvailable);
 RawMessage buildColourTaken();
 RawMessage buildAskName();
@@ -39,7 +37,7 @@ RawMessage buildSetupDone(int slot, const string& colour, const string& name);
 RawMessage buildColourChoice(char keycap);   // 'b' or 'r'
 RawMessage buildNameChoice(const string& name);
 
-// ---- Parse -------------------------------------------------
+// parsing
 int parseAssignId(const RawMessage& msg);
 vector<char> parseBoardSymbols(const RawMessage& msg);
 int parseActiveTurn(const RawMessage& msg);
@@ -52,16 +50,16 @@ pair<bool,bool> parseChooseColour(const RawMessage& msg);
 // parseSetupDone: fills slot, colour, name
 void parseSetupDone(const RawMessage& msg, int& slot, string& colour, string& name);
 
-// ---- Transport ---------------------------------------------
+// flags for sending and receiving messagees
 bool sendMessage(SOCKET sock, const RawMessage& msg);
 bool recvMessage(SOCKET sock, RawMessage& msg);
 
-// ---- Rematch -----------------------------------------------
+// builders for rematching
 RawMessage buildPlayAgainPrompt();
 RawMessage buildPlayAgainYes();
 RawMessage buildPlayAgainNo();
 
-// ---- Disconnect / reconnect --------------------------------
+// builders for reconnecting and disconnecting
 RawMessage buildOpponentQuit();
 RawMessage buildOpponentDisconnected();
 RawMessage buildReconnectSuccess();
@@ -69,5 +67,6 @@ RawMessage buildReconnectFailed();
 RawMessage buildReconnectHello(int slot);
 int parseReconnectHello(const RawMessage& msg);
 
+// builders for normal connection
 RawMessage buildNormalConnect();
 RawMessage buildReconnectRequired();
