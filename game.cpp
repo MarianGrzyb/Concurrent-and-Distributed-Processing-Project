@@ -149,10 +149,10 @@ Field* fieldAt(const vector<Field*>& allFields, int row, int col)
 bool victory(vector<Field*>& allFields, char symbol)
 {
 	int directions[4][2] = {
-		{0, 1},   // horizontal (on the right)
-		{1, 0},   // vertical (on the top)
-		{1, 1},   // diagonal upper right
-		{1, -1}   // diagonal upper left
+		{0, 1}, // horizontal (on the right)
+		{1, 0}, // vertical (on the top)
+		{1, 1}, // diagonal upper right
+		{1, -1} // diagonal upper left
 	};
 
 	for (int i = 0; i < allFields.size(); i++)

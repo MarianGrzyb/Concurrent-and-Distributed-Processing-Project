@@ -16,6 +16,7 @@
 
 using namespace std;
 
+//  connectToGameServer
 SOCKET connectToGameServer()
 {
     WSADATA wsaData;
@@ -42,7 +43,7 @@ SOCKET connectToGameServer()
 
     if (connect(sock, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
     {
-        cerr << "[CLIENT] connect() failed: " << WSAGetLastError() << endl;
+        cerr << "[CLIENT] Server unreachable, connect() failed: " << WSAGetLastError() << endl;
         closesocket(sock);
         WSACleanup();
         return INVALID_SOCKET;
@@ -52,6 +53,61 @@ SOCKET connectToGameServer()
     return sock;
 }
 
+//  reconnectToServer- connects to RECONNECT_PORT and sends MSG_RECONNECT_HELLO.
+SOCKET reconnectToServer(int mySlot)
+{
+    static bool wsaInitialized = false;
+
+    if (!wsaInitialized)
+    {
+        WSADATA wsaData;
+        if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+        {
+            cout << "[CLIENT] WSAStartup failed.\n";
+            return INVALID_SOCKET;
+        }
+        wsaInitialized = true;
+    }
+
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock == INVALID_SOCKET)
+    {
+        cout << "[CLIENT] socket() failed, WSA=" << WSAGetLastError() << endl;
+        return INVALID_SOCKET;
+    }
+
+    if (sock == INVALID_SOCKET) {
+        cout << "test2" << endl;
+        return INVALID_SOCKET;
+    }
+
+    sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port   = htons(RECONNECT_PORT);
+    InetPton(AF_INET, "127.0.0.1", &serverAddr.sin_addr.s_addr);
+
+    if (connect(sock, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
+    {
+        cerr << "[CLIENT] connect failed, WSA error: " << WSAGetLastError() << endl;
+
+        closesocket(sock);
+        return INVALID_SOCKET;
+    }
+
+    // Identify ourselves to the server
+    if (!sendMessage(sock, buildReconnectHello(mySlot)))
+    {
+        cout << "test" << endl;
+
+        closesocket(sock);
+        return INVALID_SOCKET;
+    }
+
+    cout << "[CLIENT] Reconnected to server." << endl;
+    return sock;
+}
+
+//  rebuildFieldsFromSymbols- rebuild board
 vector<Field*> rebuildFieldsFromSymbols(const vector<char>& symbols)
 {
     vector<Field*> allFields = initFields();
@@ -83,6 +139,7 @@ int promptColumnChoice()
     }
 }
 
+//  handleSetupPhase
 bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName)
 {
     while (true)
@@ -101,17 +158,10 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
             redAvailable = pair.second;
 
             cout << PLAYER_CHOOSE_COLOUR_DISPLAY;
-
-            if (blackAvailable)
-                cout << PLAYER_CHOOSE_COLOUR_BLACK_AVAILABLE_DISPLAY;
-            else
-                cout << PLAYER_CHOOSE_COLOUR_BLACK_UNAVAILABLE_DISPLAY;
-
-            if (redAvailable)
-                cout << PLAYER_CHOOSE_COLOUR_RED_AVAILABLE_DISPLAY;
-            else
-                cout << PLAYER_CHOOSE_COLOUR_RED_UNAVAILABLE_DISPLAY;
-
+            if (blackAvailable) cout << PLAYER_CHOOSE_COLOUR_BLACK_AVAILABLE_DISPLAY;
+            else                cout << PLAYER_CHOOSE_COLOUR_BLACK_UNAVAILABLE_DISPLAY;
+            if (redAvailable)   cout << PLAYER_CHOOSE_COLOUR_RED_AVAILABLE_DISPLAY;
+            else                cout << PLAYER_CHOOSE_COLOUR_RED_UNAVAILABLE_DISPLAY;
             cout << PLAYER_CHOOSE_COLOUR_FOOTER_DISPLAY;
 
             vector<char> validInputs;
@@ -121,15 +171,12 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
             char chosen = 0;
             while (!chosen)
             {
-                string input;
-                cin >> input;
+                string input; cin >> input;
                 if (input.size() == 1)
                     for (char v : validInputs)
                         if (input[0] == v) { chosen = input[0]; break; }
-                if (!chosen)
-                    cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
+                if (!chosen) cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
             }
-
             sendMessage(sock, buildColourChoice(chosen));
             continue;
         }
@@ -149,14 +196,12 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
             char choice = 0;
             while (!choice)
             {
-                string input;
-                cin >> input;
+                string input; cin >> input;
                 if (input.size() == 1 &&
                     (input[0] == PLAYER_NAME_CHANGE_CHANGE_THE_NAME_KEYCAP ||
                      input[0] == PLAYER_NAME_CHANGE_DO_NOT_CHANGE_THE_NAME_KEYCAP))
                     choice = input[0];
-                else
-                    cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
+                else cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
             }
 
             if (choice == PLAYER_NAME_CHANGE_DO_NOT_CHANGE_THE_NAME_KEYCAP)
@@ -172,7 +217,6 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
                     if ((int)name.size() > PLAYER_NAME_CHANGE_NAME_MAX_LENGTH)
                         cout << PLAYER_NAME_CHANGE_INVALID_NAME_LENGTH_DISPLAY;
                 } while ((int)name.size() > PLAYER_NAME_CHANGE_NAME_MAX_LENGTH);
-
                 sendMessage(sock, buildNameChoice(name));
             }
             continue;
@@ -187,11 +231,8 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
         if (msg.type == MSG_SETUP_DONE)
         {
             parseSetupDone(msg, mySlot, myColour, myName);
-
-            cout << PLAYER_NAME_CHANGE_NEW_NAME_DISPLAY
-                 << myName
+            cout << PLAYER_NAME_CHANGE_NEW_NAME_DISPLAY << myName
                  << PLAYER_NAME_CHANGE_SET_NAME_FOOTER_DISPLAY;
-
             cout << "\nYou are Player " << mySlot << ' ';
             if (myColour == COLOUR_BLACK_NAME)
                 cout << PLAYER_CHOOSE_COLOUR_BLACK_AVAILABLE_DISPLAY;
@@ -203,6 +244,7 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
     }
 }
 
+//  showMainMenu
 static char showMainMenu()
 {
     cout << MAIN_MENU_START_NEW_GAME_DISPLAY;
@@ -211,8 +253,7 @@ static char showMainMenu()
 
     while (true)
     {
-        string input;
-        cin >> input;
+        string input; cin >> input;
         if (input.size() == 1)
         {
             char c = input[0];
@@ -223,15 +264,10 @@ static char showMainMenu()
     }
 }
 
-static void playOneGame(SOCKET sock,
-                        HANDLE consoleColour,
-                        int mySlot,
-                        const string& myColour,
-                        const string& myName)
+//  playOneGame
+static void playOneGame(SOCKET sock, HANDLE consoleColour, int mySlot, const string& myColour, const string& myName)
 {
     bool running = true;
-
-    // Cache the last board snapshot so MSG_YOUR_TURN can call determinePossibleMoves
     vector<char> lastSymbols(PROTOCOL_BOARD_CELLS, FIELD_UNOCCUPIED_SYMBOL);
 
     while (running)
@@ -248,8 +284,8 @@ static void playOneGame(SOCKET sock,
         {
             case MSG_BOARD_STATE:
             {
-                lastSymbols          = parseBoardSymbols(msg);
-                int activeSlot       = parseActiveTurn(msg);
+                lastSymbols    = parseBoardSymbols(msg);
+                int activeSlot = parseActiveTurn(msg);
 
                 vector<Field*> allFields = rebuildFieldsFromSymbols(lastSymbols);
                 displayBoard(allFields);
@@ -261,54 +297,39 @@ static void playOneGame(SOCKET sock,
                          << TURN_FOOTER_DISPLAY;
                 else
                     cout << "  Waiting for opponent...\n";
-
                 break;
             }
 
             case MSG_YOUR_TURN:
             {
                 vector<Field*> allFields = rebuildFieldsFromSymbols(lastSymbols);
-
-                // print possible moves with column numbers
                 cout << TURN_POSSIBLE_MOVES_DISPLAY;
                 vector<char> validKeyboardInputs;
                 int availableColumns = determinePossibleMoves(allFields, validKeyboardInputs);
                 freeFields(allFields);
 
-                if (availableColumns == 0)
-                {
-                    // draw will come as MSG_GAME_OVER from server, just wait
-                    break;
-                }
+                if (availableColumns == 0) break;
 
-                // Read input
                 char validInput = 0;
                 while (!validInput)
                 {
-                    string input;
-                    cin >> input;
+                    string input; cin >> input;
                     if (input.size() == 1)
-                    {
-                        char c = input[0];
                         for (char v : validKeyboardInputs)
-                            if (c == v) { validInput = c; break; }
-                    }
+                            if (input[0] == v) { validInput = input[0]; break; }
                     if (!validInput)
                         cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
                 }
 
-                // Quit option
                 if (validInput == TURN_QUIT_TO_MAIN_MENU_KEYCAP)
                 {
-                    cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY
-                         << myName
+                    cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY << myName
                          << TURN_QUIT_TO_MAIN_MENU_DESCRIPTION_DISPLAY;
                     sendMessage(sock, buildClientQuit());
                     running = false;
                     break;
                 }
 
-                // Send column choice
                 sendMessage(sock, buildColumnChoice(int(validInput - CASTING_TO_CHAR)));
                 break;
             }
@@ -316,8 +337,6 @@ static void playOneGame(SOCKET sock,
             case MSG_MOVE_INVALID:
             {
                 cout << "\n[!] Column is FULL or invalid.\n";
-
-                // Show valid columns again using cached board state
                 vector<Field*> allFields = rebuildFieldsFromSymbols(lastSymbols);
                 cout << TURN_POSSIBLE_MOVES_DISPLAY;
                 vector<char> validKeyboardInputs;
@@ -327,35 +346,47 @@ static void playOneGame(SOCKET sock,
                 char validInput = 0;
                 while (!validInput)
                 {
-                    string input;
-                    cin >> input;
+                    string input; cin >> input;
                     if (input.size() == 1)
-                    {
-                        char c = input[0];
                         for (char v : validKeyboardInputs)
-                            if (c == v) { validInput = c; break; }
-                    }
+                            if (input[0] == v) { validInput = input[0]; break; }
                     if (!validInput)
                         cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
                 }
 
                 if (validInput == TURN_QUIT_TO_MAIN_MENU_KEYCAP)
                 {
-                    cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY
-                         << myName
+                    cout << TURN_QUIT_TO_MAIN_MENU_PLAYER_DISPLAY << myName
                          << TURN_QUIT_TO_MAIN_MENU_DESCRIPTION_DISPLAY;
                     sendMessage(sock, buildClientQuit());
                     running = false;
                 }
                 else
-                {
                     sendMessage(sock, buildColumnChoice(int(validInput - CASTING_TO_CHAR)));
-                }
                 break;
             }
 
             case MSG_MOVE_OK:
-                // Accepted — next message will be MSG_BOARD_STATE
+                break;
+
+            // ---- Opponent pressed Q — game ends immediately ----
+            case MSG_OPPONENT_QUIT:
+                cout << "\nOpponent quit the game.\n";
+                break;
+
+            // ---- Opponent's terminal closed — wait for reconnect result ----
+            case MSG_OPPONENT_DISCONNECTED:
+                cout << "\nOpponent disconnected. Waiting "
+                     << RECONNECT_TIMEOUT_SECONDS
+                     << " seconds for them to reconnect...\n";
+                break;
+
+            case MSG_RECONNECT_SUCCESS:
+                cout << "\nOpponent reconnected! Resuming game.\n";
+                break;
+
+            case MSG_RECONNECT_FAILED:
+                cout << "\nOpponent failed to reconnect. You win!\n";
                 break;
 
             case MSG_GAME_OVER:
@@ -368,96 +399,120 @@ static void playOneGame(SOCKET sock,
                 }
                 else
                 {
-                    int    winnerSlot   = (result == RESULT_WIN_PLAYER1) ? 1 : 2;
-
+                    int winnerSlot = (result == RESULT_WIN_PLAYER1) ? 1 : 2;
                     if (winnerSlot == mySlot)
                     {
                         SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_GREEN);
-                        cout << WIN_EVENT_PLAYER_DISPLAY << myName << WIN_EVENT_COLOUR_DISPLAY << myColour
+                        cout << WIN_EVENT_PLAYER_DISPLAY << myName
+                             << WIN_EVENT_COLOUR_DISPLAY << myColour
                              << WIN_EVENT_FOOTER_DISPLAY;
                         SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_DEFAULT);
                     }
                     else
                     {
                         SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_RED);
-                        cout << WIN_EVENT_PLAYER_DISPLAY << myName << WIN_EVENT_COLOUR_DISPLAY << myColour
-                        << LOST_EVENT_FOOTER_DISPLAY;
+                        cout << WIN_EVENT_PLAYER_DISPLAY << myName
+                             << WIN_EVENT_COLOUR_DISPLAY << myColour
+                             << LOST_EVENT_FOOTER_DISPLAY;
                         SetConsoleTextAttribute(consoleColour, TEXT_COLOUR_DEFAULT);
                     }
                 }
-
                 running = false;
                 break;
             }
 
             default:
-                cerr << "[CLIENT] Unknown message type '" << msg.type << "' — ignoring." << endl;
+                cerr << "[CLIENT] Unknown message type '" << msg.type << "'" << endl;
                 break;
         }
     }
 }
 
+//  runGameClient
 int runGameClient()
 {
-    SOCKET sock = connectToGameServer();
+    bool reconnectChosen = false;
+    int mySlot = -1;
+    string myColour = "";
+    string myName = "";
+
+    SOCKET sock = INVALID_SOCKET;
+
+    cout << "1. New game\n";
+    cout << "2. Reconnect\n";
+    cout << "Choice: ";
+
+    int choice;
+    cin >> choice;
+
+    int slot = -1;
+
+    if (choice == 2)
+    {
+        cout << "Enter previous player slot (1 or 2): ";
+        cin >> slot;
+
+        sock = reconnectToServer(slot);
+        reconnectChosen = true;
+        mySlot = slot;
+        myColour = "RED";
+        myName = "mateusz";
+    }
+    else
+    {
+        sock = connectToGameServer();
+    }
+
     if (sock == INVALID_SOCKET)
+    {
+        cerr << "[CLIENT] Failed to connect.\n";
         return 1;
+    }
 
     HANDLE consoleColour = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    // Mirror game.cpp main() do-while
     do
     {
-        // Show main menu
-        char currentOption = showMainMenu();
+        if (!reconnectChosen) {
+            char currentOption = showMainMenu();
 
-        if (currentOption == MAIN_MENU_QUIT_THE_GAME_KEYCAP)
-        {
-            // Tell server clients are created
-            sendMessage(sock, buildClientQuit());
-            break;
+            if (currentOption == MAIN_MENU_QUIT_THE_GAME_KEYCAP)
+            {
+                sendMessage(sock, buildClientQuit());
+                break;
+            }
+
+            if (!handleSetupPhase(sock, mySlot, myColour, myName))
+            {
+                cerr << "[CLIENT] Setup failed." << endl;
+                break;
+            }
         }
 
-        // MAIN_MENU_START_NEW_GAME_KEYCAP
+        reconnectChosen = false;
 
-        // Setup phase: colour + name
-        int    mySlot   = -1;
-        string myColour = "";
-        string myName   = "";
-
-        if (!handleSetupPhase(sock, mySlot, myColour, myName))
-        {
-            cerr << "[CLIENT] Setup failed." << endl;
-            break;
-        }
-
-        // Play the game
         playOneGame(sock, consoleColour, mySlot, myColour, myName);
 
-        // Server will send MSG_PLAY_AGAIN_PROMPT
         RawMessage prompt;
         if (!recvMessage(sock, prompt) || prompt.type != MSG_PLAY_AGAIN_PROMPT)
             break;
 
-        // Ask locally whether to play again
         cout << "\n";
-        cout << MAIN_MENU_START_NEW_GAME_DISPLAY; // [s] to start new game
-        cout << MAIN_MENU_QUIT_DISPLAY; // [q] to quit
+        cout << MAIN_MENU_START_NEW_GAME_DISPLAY;
+        cout << MAIN_MENU_QUIT_DISPLAY;
         cout << MAIN_MENU_FOOTER_DISPLAY;
 
         char again = 0;
         while (!again)
         {
-            string input;
-            cin >> input;
+            string input; cin >> input;
             if (input.size() == 1)
             {
                 char c = input[0];
                 if (c == MAIN_MENU_START_NEW_GAME_KEYCAP || c == MAIN_MENU_QUIT_THE_GAME_KEYCAP)
                     again = c;
             }
-            if (!again)
-                cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
+            if (!again) cout << CHECKING_INPUT_CORRECTNESS_INCORRECT_INPUT_DISPLAY;
         }
 
         if (again == MAIN_MENU_START_NEW_GAME_KEYCAP)

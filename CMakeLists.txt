@@ -6,72 +6,72 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(.)
 
 add_executable(Server
-        concurrent_distributed_game/server.cpp
-        concurrent_distributed_game/server_main.cpp
-        concurrent_distributed_game/server.h
-        concurrent_distributed_game/Definers.h)
+        server.cpp
+        server_main.cpp
+        server.h
+        Definers.h)
 
 target_link_libraries(Server ws2_32)
 
 add_executable(Client
-        concurrent_distributed_game/Board.cpp
-        concurrent_distributed_game/Board.h
-        concurrent_distributed_game/Definers.h
-        concurrent_distributed_game/Field.cpp
-        concurrent_distributed_game/Field.h
-        concurrent_distributed_game/FieldInitialization.cpp
-        concurrent_distributed_game/FieldsInitialization.h
-        concurrent_distributed_game/game.cpp
-        concurrent_distributed_game/KeyboardInputHandling.cpp
-        concurrent_distributed_game/KeyboardInputHandling.h
-        concurrent_distributed_game/MainMenu.cpp
-        concurrent_distributed_game/MainMenu.h
-        concurrent_distributed_game/Player.cpp
-        concurrent_distributed_game/Player.h
-        concurrent_distributed_game/PlayerInitialization.cpp
-        concurrent_distributed_game/PlayerInitialization.h
-        concurrent_distributed_game/socket.cpp
-        concurrent_distributed_game/socket.h
+        Board.cpp
+        Board.h
+        Definers.h
+        Field.cpp
+        Field.h
+        FieldInitialization.cpp
+        FieldsInitialization.h
+        game.cpp
+        KeyboardInputHandling.cpp
+        KeyboardInputHandling.h
+        MainMenu.cpp
+        MainMenu.h
+        Player.cpp
+        Player.h
+        PlayerInitialization.cpp
+        PlayerInitialization.h
+        socket.cpp
+        socket.h
 )
 
 target_link_libraries(Client ws2_32)
 
 add_executable(GameServer
-        concurrent_distributed_game/server_main_game.cpp
-        concurrent_distributed_game/GameServer.cpp
-        concurrent_distributed_game/GameServer.h
-        concurrent_distributed_game/NetworkMessage.cpp
-        concurrent_distributed_game/NetworkMessage.h
-        concurrent_distributed_game/Protocol.h
-        concurrent_distributed_game/GameLogic.cpp
-        concurrent_distributed_game/GameLogic.h
-        concurrent_distributed_game/Field.cpp
-        concurrent_distributed_game/Field.h
-        concurrent_distributed_game/FieldInitialization.cpp
-        concurrent_distributed_game/FieldsInitialization.h
-        concurrent_distributed_game/Player.cpp
-        concurrent_distributed_game/Player.h
-        concurrent_distributed_game/Definers.h
+        server_main_game.cpp
+        GameServer.cpp
+        GameServer.h
+        NetworkMessage.cpp
+        NetworkMessage.h
+        Protocol.h
+        GameLogic.cpp
+        GameLogic.h
+        Field.cpp
+        Field.h
+        FieldInitialization.cpp
+        FieldsInitialization.h
+        Player.cpp
+        Player.h
+        Definers.h
 )
 
 target_link_libraries(GameServer ws2_32)
 
 add_executable(GameClient
-        concurrent_distributed_game/client_main_game.cpp
-        concurrent_distributed_game/GameClient.cpp
-        concurrent_distributed_game/GameClient.h
-        concurrent_distributed_game/NetworkMessage.cpp
-        concurrent_distributed_game/NetworkMessage.h
-        concurrent_distributed_game/Protocol.h
-        concurrent_distributed_game/GameLogic.cpp
-        concurrent_distributed_game/GameLogic.h
-        concurrent_distributed_game/Field.cpp
-        concurrent_distributed_game/Field.h
-        concurrent_distributed_game/FieldInitialization.cpp
-        concurrent_distributed_game/FieldsInitialization.h
-        concurrent_distributed_game/Board.cpp
-        concurrent_distributed_game/Board.h
-        concurrent_distributed_game/Definers.h
+        client_main_game.cpp
+        GameClient.cpp
+        GameClient.h
+        NetworkMessage.cpp
+        NetworkMessage.h
+        Protocol.h
+        GameLogic.cpp
+        GameLogic.h
+        Field.cpp
+        Field.h
+        FieldInitialization.cpp
+        FieldsInitialization.h
+        Board.cpp
+        Board.h
+        Definers.h
 )
 
 target_link_libraries(GameClient ws2_32)
