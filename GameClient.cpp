@@ -86,6 +86,7 @@ SOCKET reconnectToServer(int mySlot)
     serverAddr.sin_port = htons(RECONNECT_PORT);
     InetPton(AF_INET, "127.0.0.1", &serverAddr.sin_addr.s_addr);
 
+    // Connect to the server reconnection port
     if (connect(sock, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
     {
         cerr << "[CLIENT] connect failed, WSA error: " << WSAGetLastError() << endl;
