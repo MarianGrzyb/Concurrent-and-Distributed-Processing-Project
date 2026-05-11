@@ -509,6 +509,8 @@ int runGameClient()
             }
         }
 
+        xd = false;
+
         playOneGame(sock, consoleColour, mySlot, myColour, myName);
 
         RawMessage prompt;
