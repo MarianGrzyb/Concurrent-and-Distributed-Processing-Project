@@ -19,16 +19,12 @@
 
 using namespace std;
 
-// ============================================================
 //  Connection state per client slot
-// ============================================================
 enum class ConnState { CONNECTED, QUIT, DROPPED };
 
-// ============================================================
 //  safeSend / safeRecv
 //  Return false on any error without spamming cerr during
 //  expected disconnects.
-// ============================================================
 static bool safeSend(SOCKET sock, const RawMessage& msg)
 {
     if (sock == INVALID_SOCKET) return false;
@@ -41,7 +37,6 @@ static bool safeRecv(SOCKET sock, RawMessage& msg)
     return recvMessage(sock, msg);
 }
 
-// ============================================================
 //  classifyDisconnect
 //  Call after recv/send failure.  WSAGetLastError() == 0 means
 //  the remote closed the connection gracefully (terminal closed).
@@ -49,7 +44,6 @@ static bool safeRecv(SOCKET sock, RawMessage& msg)
 //  Any other error is also a drop.
 //  MSG_CLIENT_QUIT was already handled in the message loop, so
 //  by the time we get here it is always a terminal-close / crash.
-// ============================================================
 static ConnState classifyDisconnect()
 {
     int err = WSAGetLastError();
@@ -58,13 +52,11 @@ static ConnState classifyDisconnect()
     return ConnState::DROPPED;
 }
 
-// ============================================================
 //  waitForReconnect
 //  Opens a temporary accept on RECONNECT_PORT, waits up to
 //  RECONNECT_TIMEOUT_SECONDS for the dropped client to come back.
 //  The client must send MSG_RECONNECT_HELLO with its slot number.
 //  Returns the new SOCKET on success, INVALID_SOCKET on timeout.
-// ============================================================
 static SOCKET waitForReconnect(int expectedSlot)
 {
     cout << "[SERVER] Waiting " << RECONNECT_TIMEOUT_SECONDS
@@ -132,13 +124,11 @@ static SOCKET waitForReconnect(int expectedSlot)
     return client;
 }
 
-// ============================================================
 //  handleDroppedClient
 //  Called when a client's socket goes dead mid-game.
 //  Notifies the other client, opens reconnect window.
 //  Returns true if the client reconnected (clientSockets[idx]
 //  is updated to the new socket).
-// ============================================================
 static bool handleDroppedClient(SOCKET clientSockets[2], int droppedIdx)
 {
     int otherIdx = 1 - droppedIdx;
@@ -168,9 +158,7 @@ static bool handleDroppedClient(SOCKET clientSockets[2], int droppedIdx)
     return true;
 }
 
-// ============================================================
 //  acceptClients
-// ============================================================
 bool acceptClients(SOCKET listenSock, SOCKET clientSockets[2])
 {
     cout << "[SERVER] Waiting for " << PROTOCOL_MAX_CLIENTS << " clients..." << endl;
@@ -191,9 +179,7 @@ bool acceptClients(SOCKET listenSock, SOCKET clientSockets[2])
     return true;
 }
 
-// ============================================================
-//  Setup phase (unchanged threading logic)
-// ============================================================
+//  Setup phase
 static string negotiateNameForClient(SOCKET sock, const string& defaultName)
 {
     while (true)
@@ -228,9 +214,8 @@ struct SetupContext
 
 static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
 {
-    int    slot        = idx + 1;
-    string defaultName = (slot == PLAYER_DEFAULT_ID_1)
-                         ? PLAYER_DEFAULT_NAME_1 : PLAYER_DEFAULT_NAME_2;
+    int slot = idx + 1;
+    string defaultName = (slot == PLAYER_DEFAULT_ID_1) ? PLAYER_DEFAULT_NAME_1 : PLAYER_DEFAULT_NAME_2;
     string chosenColour;
 
     while (true)
@@ -243,7 +228,7 @@ static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
             for (const string& c : ctx.takenColours)
             {
                 if (c == COLOUR_BLACK_NAME) blackAvailable = false;
-                if (c == COLOUR_RED_NAME)   redAvailable   = false;
+                if (c == COLOUR_RED_NAME) redAvailable   = false;
             }
         }
 
@@ -257,8 +242,7 @@ static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
         char keycap = parseColourChoice(resp);
         {
             lock_guard<mutex> lock(ctx.colourMutex);
-            bool valid = (keycap == COLOUR_BLACK_KEYCAP && blackAvailable)
-                      || (keycap == COLOUR_RED_KEYCAP   && redAvailable);
+            bool valid = (keycap == COLOUR_BLACK_KEYCAP && blackAvailable) || (keycap == COLOUR_RED_KEYCAP   && redAvailable);
             if (!valid) { sendMessage(sock, buildColourTaken()); continue; }
             chosenColour = (keycap == COLOUR_BLACK_KEYCAP) ? COLOUR_BLACK_NAME : COLOUR_RED_NAME;
             ctx.takenColours.push_back(chosenColour);
@@ -277,9 +261,7 @@ static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
     if (!sendMessage(sock, buildSetupDone(slot, chosenColour, chosenName)))
     { delete p; ctx.success[idx] = false; return; }
 
-    cout << "[SERVER] Player " << slot
-         << ", colour: " << chosenColour
-         << ", name: "   << chosenName << endl;
+    cout << "[SERVER] Player " << slot  << ", colour: " << chosenColour << ", name: "   << chosenName << endl;
 
     ctx.players[idx] = p;
     ctx.success[idx] = true;
@@ -305,38 +287,30 @@ bool negotiatePlayers(SOCKET clientSockets[2], vector<Player*>& players)
     return true;
 }
 
-// ============================================================
-//  broadcastBoardState — parallel send
-// ============================================================
-void broadcastBoardState(SOCKET clientSockets[2],
-                         const vector<Field*>& allFields,
-                         int activeSlot)
+//  broadcastBoardState
+void broadcastBoardState(SOCKET clientSockets[2], const vector<Field*>& allFields, int activeSlot)
 {
     RawMessage msg = buildBoardState(allFields, activeSlot);
     thread t0([msg, &clientSockets](){ safeSend(clientSockets[0], msg); });
     thread t1([msg, &clientSockets](){ safeSend(clientSockets[1], msg); });
-    t0.join(); t1.join();
+    t0.join();
+    t1.join();
 }
 
-// ============================================================
-//  broadcastGameOver — parallel send
-// ============================================================
+//  broadcastGameOver
 void broadcastGameOver(SOCKET clientSockets[2], char resultCode)
 {
     RawMessage msg = buildGameOver(resultCode);
     thread t0([msg, &clientSockets](){ safeSend(clientSockets[0], msg); });
     thread t1([msg, &clientSockets](){ safeSend(clientSockets[1], msg); });
-    t0.join(); t1.join();
+    t0.join();
+    t1.join();
 }
 
-// ============================================================
 //  getValidatedMove
 //  Now distinguishes Q (quit) from socket error (dropped).
 //  Returns column on success, -1 on quit, -2 on drop.
-// ============================================================
-int getValidatedMove(SOCKET clientSocket,
-                     SOCKET /*otherClientSocket*/,
-                     const vector<Field*>& allFields)
+int getValidatedMove(SOCKET clientSocket, SOCKET /*otherClientSocket*/, const vector<Field*>& allFields)
 {
     if (!safeSend(clientSocket, buildYourTurn()))
         return -2;   // send failed = dropped
@@ -368,9 +342,7 @@ int getValidatedMove(SOCKET clientSocket,
     }
 }
 
-// ============================================================
 //  playOneGame
-// ============================================================
 static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
 {
     vector<Field*> allFields = initFields();
@@ -481,9 +453,7 @@ static bool playOneGame(SOCKET clientSockets[2], vector<Player*>& players)
     return false;
 }
 
-// ============================================================
 //  runGameServer
-// ============================================================
 int runGameServer()
 {
     WSADATA wsaData;

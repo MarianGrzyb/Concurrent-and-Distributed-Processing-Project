@@ -16,9 +16,7 @@
 
 using namespace std;
 
-// ============================================================
 //  connectToGameServer
-// ============================================================
 SOCKET connectToGameServer()
 {
     WSADATA wsaData;
@@ -55,11 +53,7 @@ SOCKET connectToGameServer()
     return sock;
 }
 
-// ============================================================
-//  reconnectToServer
-//  Called when this client's terminal was closed and reopened.
-//  Connects to RECONNECT_PORT and sends MSG_RECONNECT_HELLO.
-// ============================================================
+//  reconnectToServer- connects to RECONNECT_PORT and sends MSG_RECONNECT_HELLO.
 SOCKET reconnectToServer(int mySlot)
 {
     static bool wsaInitialized = false;
@@ -113,9 +107,7 @@ SOCKET reconnectToServer(int mySlot)
     return sock;
 }
 
-// ============================================================
-//  rebuildFieldsFromSymbols
-// ============================================================
+//  rebuildFieldsFromSymbols- rebuild board
 vector<Field*> rebuildFieldsFromSymbols(const vector<char>& symbols)
 {
     vector<Field*> allFields = initFields();
@@ -147,9 +139,7 @@ int promptColumnChoice()
     }
 }
 
-// ============================================================
 //  handleSetupPhase
-// ============================================================
 bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName)
 {
     while (true)
@@ -254,9 +244,7 @@ bool handleSetupPhase(SOCKET sock, int& mySlot, string& myColour, string& myName
     }
 }
 
-// ============================================================
 //  showMainMenu
-// ============================================================
 static char showMainMenu()
 {
     cout << MAIN_MENU_START_NEW_GAME_DISPLAY;
@@ -276,14 +264,8 @@ static char showMainMenu()
     }
 }
 
-// ============================================================
 //  playOneGame
-// ============================================================
-static void playOneGame(SOCKET sock,
-                        HANDLE consoleColour,
-                        int mySlot,
-                        const string& myColour,
-                        const string& myName)
+static void playOneGame(SOCKET sock, HANDLE consoleColour, int mySlot, const string& myColour, const string& myName)
 {
     bool running = true;
     vector<char> lastSymbols(PROTOCOL_BOARD_CELLS, FIELD_UNOCCUPIED_SYMBOL);
@@ -446,13 +428,11 @@ static void playOneGame(SOCKET sock,
     }
 }
 
-// ============================================================
 //  runGameClient
-// ============================================================
 int runGameClient()
 {
-    bool xd = false;
-    int    mySlot = -1;
+    bool reconnectChosen = false;
+    int mySlot = -1;
     string myColour = "";
     string myName = "";
 
@@ -473,10 +453,10 @@ int runGameClient()
         cin >> slot;
 
         sock = reconnectToServer(slot);
-        xd = true;
+        reconnectChosen = true;
         mySlot = slot;
-        myColour = "BROWN";
-        myName = "Player 1";
+        myColour = "RED";
+        myName = "mateusz";
     }
     else
     {
@@ -493,7 +473,7 @@ int runGameClient()
 
     do
     {
-        if (!xd) {
+        if (!reconnectChosen) {
             char currentOption = showMainMenu();
 
             if (currentOption == MAIN_MENU_QUIT_THE_GAME_KEYCAP)
@@ -509,7 +489,7 @@ int runGameClient()
             }
         }
 
-        xd = false;
+        reconnectChosen = false;
 
         playOneGame(sock, consoleColour, mySlot, myColour, myName);
 
