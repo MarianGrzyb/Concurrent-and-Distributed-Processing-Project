@@ -69,7 +69,7 @@ static SOCKET waitForReconnect(int expectedSlot)
         return INVALID_SOCKET;
     }
 
-    listen(s, 1);
+    listen(s, 1); // now the server listens on port 55556 for reconnection
 
     fd_set fds;
     FD_ZERO(&fds);
@@ -79,6 +79,7 @@ static SOCKET waitForReconnect(int expectedSlot)
     tv.tv_sec = RECONNECT_TIMEOUT_SECONDS;
     tv.tv_usec = 0;
 
+    // either client reconnect within RECONNECT_TIMEOUT_SECONDS or it returns 0
     int r = select(0, &fds, nullptr, nullptr, &tv);
 
     if (r <= 0)
@@ -94,6 +95,7 @@ static SOCKET waitForReconnect(int expectedSlot)
     if (client == INVALID_SOCKET)
         return INVALID_SOCKET;
 
+    // check if received message identify a reconnecting client
     RawMessage msg;
     if (!recvMessage(client, msg) || msg.type != MSG_RECONNECT_HELLO)
     {
@@ -103,6 +105,7 @@ static SOCKET waitForReconnect(int expectedSlot)
 
     int slot = parseReconnectHello(msg);
 
+    // check if received message identify a slot for reconnecting client
     if (slot != expectedSlot)
     {
         closesocket(client);
@@ -171,9 +174,11 @@ static string negotiateNameForClient(SOCKET sock, const string& defaultName)
 {
     while (true)
     {
-        if (!sendMessage(sock, buildAskName())) return defaultName;
+        if (!sendMessage(sock, buildAskName()))
+            return defaultName;
         RawMessage resp;
-        if (!recvMessage(sock, resp))           return defaultName;
+        if (!recvMessage(sock, resp))
+            return defaultName;
         if (resp.type == MSG_NAME_CHOICE)
         {
             string name = parseNameChoice(resp);
@@ -193,10 +198,10 @@ struct SetupContext
 {
     mutex colourMutex;
     condition_variable colourCV;
-    vector<string> takenColours;
+    vector<string> takenColours; // shared resource
     int coloursCommitted = 0;
-    Player* players[2]  = { nullptr, nullptr };
-    bool success[2]  = { false,   false   };
+    Player* players[2] = { nullptr, nullptr };
+    bool success[2] = { false, false };
 };
 
 static void setupThreadFunc(SetupContext& ctx, int idx, SOCKET sock)
