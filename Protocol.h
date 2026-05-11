@@ -44,3 +44,16 @@
 #define MSG_PLAY_AGAIN_PROMPT      'P'  // server asks: play again?
 #define MSG_PLAY_AGAIN_YES         'Y'  // client votes yes
 #define MSG_PLAY_AGAIN_NO          'Z'  // client votes no  (server will close)
+
+// ---------- Disconnect handling -----------------------------
+#define MSG_OPPONENT_QUIT          'F'  // opponent pressed Q — game over immediately
+#define MSG_OPPONENT_DISCONNECTED  'D'  // opponent's terminal closed — wait for reconnect
+#define MSG_RECONNECT_SUCCESS      'R'  // server tells remaining client reconnect succeeded
+#define MSG_RECONNECT_FAILED       'E'  // 15s elapsed, no reconnect — game over
+#define MSG_RECONNECT_HELLO        'H'  // reconnecting client identifies itself
+
+#define RECONNECT_TIMEOUT_SECONDS  30
+#define RECONNECT_PORT             55556   // separate port for reconnect attempts
+
+#define MSG_NORMAL_CONNECT '8'
+#define MSG_RECONNECT_REQUIRED '9'
